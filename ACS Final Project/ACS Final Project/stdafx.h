@@ -2,6 +2,7 @@
 #include <WindowsX.h>
 #include <tchar.h>
 #include <wrl.h>
+#include <string.h>
 
 #include <d3d12.h>
 #include <dxgi1_6.h>
