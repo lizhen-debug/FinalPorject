@@ -659,12 +659,13 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
     stVertexBufferView.StrideInBytes = sizeof(GRS_VERTEX);
     stVertexBufferView.SizeInBytes = nVertexBufferSize;
     
-
+    
     //使用WIC创建并加载一个2D纹理
     
     //使用纯COM方式创建WIC类厂对象，也是调用WIC第一步要做的事情
-    HRESULT hr = CoCreateInstance(CLSID_WICImagingFactory, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&pIWICFactory));
-
+    HRESULT hr = CoInitialize(nullptr);
+    hr = CoCreateInstance(CLSID_WICImagingFactory, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&pIWICFactory));
+    
     //使用WIC类厂对象接口加载纹理图片，并得到一个WIC解码器对象接口，图片信息就在这个接口代表的对象中了
     TCHAR pszTexcuteFileName[] = _T("D:\\OneDrive - University of Exeter\\MSc Advanced Computer Science\\Code Dir\\ACS Final Project\\FinalPorject\\ACS Final Project\\ACS Final Project\\Textures\\test1.jpg");
     
@@ -678,7 +679,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 
     //获取第一帧图片，解析出的通常是位图
     pIWICDecoder->GetFrame(0, &pIWICFrame);
-
+    
     WICPixelFormatGUID wpf = {};
     //获取WIC图片格式
     pIWICFrame->GetPixelFormat(&wpf);
@@ -696,7 +697,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
      // 图片都需要提前转换好，所以不会出现不支持的现象
         return 0;
     }
-
+    
     // 定义一个位图格式的图片数据对象接口
     ComPtr<IWICBitmapSource>pIBMP;
 
@@ -724,13 +725,14 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
         //图片数据格式不需要转换，直接获取其位图数据源接口
         pIWICFrame.As(&pIBMP);
     }
+    
     //获得图片大小（单位：像素）
     pIBMP->GetSize(&nTextureW, &nTextureH);
-
+    
     //获取图片像素的位大小的BPP（Bits Per Pixel）信息，用以计算图片行数据的真实大小（单位：字节）
     ComPtr<IWICComponentInfo> pIWICmntinfo;
     pIWICFactory->CreateComponentInfo(tgFormat, pIWICmntinfo.GetAddressOf());
-
+    
     WICComponentType type;
     pIWICmntinfo->GetComponentType(&type);
 
@@ -738,10 +740,10 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
     {
         return 0;
     }
-
+    
     ComPtr<IWICPixelFormatInfo> pIWICPixelinfo;
     pIWICmntinfo.As(&pIWICPixelinfo);
-
+    
     // 到这里终于可以得到BPP了，这也是我看的比较吐血的地方，为了BPP居然饶了这么多环节
     pIWICPixelinfo->GetBitsPerPixel(&nBPP);
 
@@ -750,7 +752,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
     
     
     
-
+    
     D3D12_RESOURCE_DESC stTextureDesc = {};
     stTextureDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
     stTextureDesc.MipLevels = 1;
@@ -780,7 +782,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 
     //获取上传堆资源缓冲的大小，这个尺寸通常大于实际图片的尺寸
     const UINT64 n64UploadBufferSize = GetRequiredIntermediateSize(pITexcute.Get(), 0, 1);
-
+    
     // 创建用于上传纹理的资源,注意其类型是Buffer
     // 上传堆对于GPU访问来说性能是很差的，
     // 所以对于几乎不变的数据尤其像纹理都是
@@ -813,7 +815,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
         , static_cast<UINT>(nPicRowPitch * nTextureH)   //注意这里才是图片数据真实的大小，这个值通常小于缓冲的大小
         , reinterpret_cast<BYTE*>(pbPicData));
 
-
+    
     //获取向上传堆拷贝纹理数据的一些纹理转换尺寸信息
     //对于复杂的DDS纹理这是非常必要的过程
     UINT64 n64RequiredSize = 0u;
@@ -969,7 +971,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
     stEndResBarrier.Transition.StateAfter = D3D12_RESOURCE_STATE_PRESENT;
     stEndResBarrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
 
-
+    
 
     //创建定时器对象，以便于创建高效的消息循环
     HANDLE phWait = CreateWaitableTimer(NULL, FALSE, NULL);
