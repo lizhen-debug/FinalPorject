@@ -1,13 +1,15 @@
 #include "stdafx.h"
 
+//宏定义
+
 //#define Render_Base_Triangle
-#define Render_Base_Rectangle_With_Texture
+//#define Render_Base_Rectangle_With_Texture
+#define Render_Texture_Cube_With_Camera
 
-
-//新定义的宏用于上取整除法
+//向上取整除法
 #define GRS_UPPER_DIV(A,B) ((UINT)(((A)+((B)-1))/(B)))
 
-//更简洁的向上边界对齐算法 内存管理中常用 请记住
+//更简洁的向上边界对齐算法 内存管理中常用
 #define GRS_UPPER(A,B) ((UINT)(((A)+((B)-1))&~(B - 1)))
 
 
@@ -16,8 +18,8 @@ using namespace Microsoft::WRL;
 using namespace std;
 using namespace DirectX;
 
-#ifdef Render_Base_Rectangle_With_Texture
-
+#if defined(Render_Base_Rectangle_With_Texture) || defined(Render_Texture_Cube_With_Camera)
+//----------------------------------------------------------------------------------
 //DX12示例库中的两个用于格式匹配的工具函数
 struct WICTranslate
 {
@@ -138,28 +140,61 @@ DXGI_FORMAT GetDXGIFormatFromPixelFormat(const GUID* pPixelFormat)
     return DXGI_FORMAT_UNKNOWN;
 }
 
+//----------------------------------------------------------------------------------
+#endif // Enable WIC support
+
+#ifdef Render_Base_Rectangle_With_Texture
+//定义顶点结构体
 struct GRS_VERTEX
 {
-    XMFLOAT3 m_vPos;		//Position
-    XMFLOAT2 m_vTxc;		//Texcoord
+    XMFLOAT3 m_vPos;//顶点位置信息，float[3]
+    XMFLOAT2 m_vTxc;//顶点纹理坐标信息，float[2]
 };
 
 #endif // Render_Base_Rectangle_With_Texture
-
-//窗体备用
-HWND g_hwnd;
-HINSTANCE g_hInstance;
 
 #ifdef Render_Base_Triangle
 
 //定义顶点结构体
 struct GRS_VERTEX
 {
-    XMFLOAT3 position;//等价于float[3]
-    XMFLOAT4 color;//等价于float[4]
+    XMFLOAT3 position;//顶点位置信息，float[3]
+    XMFLOAT4 color;//顶点颜色信息，float[4]
 };
 
 #endif // Render_Base_Triangle
+
+#ifdef Render_Texture_Cube_With_Camera
+
+//定义顶点结构体
+struct ST_GRS_VERTEX
+{
+    //顶点结构体额外加入了每个顶点的法线信息，但Shader中还暂时没有用
+    XMFLOAT3 m_vPos;//顶点位置信息，float[3]
+    XMFLOAT2 m_vTex;//顶点纹理坐标信息，float[2]
+    XMFLOAT3 m_vNor;//顶点法线信息，float[3]
+};
+
+//定义矩阵buffer结构体
+struct ST_GRS_FRAME_MVP_BUFFER
+{
+    XMFLOAT4X4 m_MVP;//经典的Model-view-projection(MVP)矩阵
+};
+
+//初始的视角（camera）的位置
+XMVECTOR Eye = XMVectorSet(0.0f, 5.0f, -15.0f, 0.0f);//眼睛位置
+XMVECTOR At = XMVectorSet(0.0f, 0.0f, 0.0f, 0.0f);//眼睛所盯的位置
+XMVECTOR Up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);//眼睛(camera)上方向方向矢量
+
+//物体旋转的角速度，单位：弧度/秒
+double fPalstance = 10.0f * XM_PI / 180.0f;
+
+#endif // Render_Texture_Cube_With_Camera
+
+
+//全局窗口变量
+HWND g_hwnd;
+HINSTANCE g_hInstance;
 
 UINT nCurrentSamplerNO = 0; //当前使用的采样器索引
 UINT nSampleMaxCnt = 5;		//创建五个典型的采样器
@@ -173,15 +208,67 @@ LRESULT CALLBACK WinProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         PostQuitMessage(0);
         break;
 
+
+
+
+
+
+
     case WM_KEYUP:
     {
-        if (VK_SPACE == (wParam & 0xFF))
-        {//按空格键切换不同的采样器看效果，以明白每种采样器具体的含义
-            //UINT nCurrentSamplerNO = 0; //当前使用的采样器索引
-            //UINT nSampleMaxCnt = 5;		//创建五个典型的采样器
+        USHORT n16KeyCode = (wParam & 0xFF);
+        if (VK_SPACE == n16KeyCode)
+        {
+            //按空格键切换不同的采样器看效果，以明白每种采样器具体的含义
             ++nCurrentSamplerNO;
             nCurrentSamplerNO %= nSampleMaxCnt;
         }
+
+#ifdef Render_Texture_Cube_With_Camera
+        //W,S,A,D控制camera上下左右，加减控制旋转速度
+        //XMVECTOR Eye = XMVectorSet(0.0f, 5.0f, -10.0f, 0.0f); //眼睛位置
+        //XMVECTOR At = XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f);  //眼睛所盯的位置
+        //XMVECTOR Up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);  //头部正上方位置
+
+        if (VK_UP == n16KeyCode || 'w' == n16KeyCode || 'W' == n16KeyCode)
+        {
+            Eye = XMVectorAdd(Eye, XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f));
+        }
+
+        if (VK_DOWN == n16KeyCode || 's' == n16KeyCode || 'S' == n16KeyCode)
+        {
+            Eye = XMVectorAdd(Eye, XMVectorSet(0.0f, -1.0f, 0.0f, 0.0f));
+        }
+
+        if (VK_RIGHT == n16KeyCode || 'd' == n16KeyCode || 'D' == n16KeyCode)
+        {
+            Eye = XMVectorAdd(Eye, XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f));
+        }
+
+        if (VK_LEFT == n16KeyCode || 'a' == n16KeyCode || 'A' == n16KeyCode)
+        {
+            Eye = XMVectorAdd(Eye, XMVectorSet(0.0f, 0.0f, -1.0f, 0.0f));
+        }
+
+        if (VK_ADD == n16KeyCode || VK_OEM_PLUS == n16KeyCode)
+        {
+            //double fPalstance = 10.0f * XM_PI / 180.0f;	//物体旋转的角速度，单位：弧度/秒
+            fPalstance += 10 * XM_PI / 180.0f;
+            if (fPalstance > XM_PI)
+            {
+                fPalstance = XM_PI;
+            }
+        }
+
+        if (VK_SUBTRACT == n16KeyCode || VK_OEM_MINUS == n16KeyCode)
+        {
+            fPalstance -= 10 * XM_PI / 180.0f;
+            if (fPalstance < 0.0f)
+            {
+                fPalstance = XM_PI / 180.0f;
+            }
+        }
+#endif // Render_Texture_Cube_With_Camera
     }
     break;
 
@@ -216,8 +303,17 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 
     MSG msg;//窗口的消息
 
+#ifdef Render_Texture_Cube_With_Camera
+    float fBoxSize = 3.0f;
+    float fTCMax = 2.0f;
+    ST_GRS_FRAME_MVP_BUFFER* pMVPBuffer = nullptr;
+    SIZE_T szMVPBuffer = GRS_UPPER_DIV(sizeof(ST_GRS_FRAME_MVP_BUFFER), 256) * 256;//缓冲尺寸设置为256边界对齐大小
+#endif // Render_Texture_Cube_With_Camera
+
     //一个用于提供给绘制命令队列的顶点buffer的view，描述了顶点buffer的信息
     D3D12_VERTEX_BUFFER_VIEW stVertexBufferView = {};
+    //一个用于提供给绘制命令队列的顶点buffer的view，描述了索引buffer的信息
+    D3D12_INDEX_BUFFER_VIEW stIndexBufferView = {};
 
     //围栏的标记值，0为数字，ui64为后缀，表示将0指定数值为无符号 64 位整数类型
     UINT64 n64FenceValue = 0ui64;
@@ -248,7 +344,9 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
     ComPtr<ID3D12Heap>					 pIUploadHeap;
     ComPtr<ID3D12Resource>				 pITexture;
     ComPtr<ID3D12Resource>				 pITextureUpload;
+    ComPtr<ID3D12Resource>			     pICBVUpload;
     ComPtr<ID3D12Resource>				 pIVertexBuffer;
+    ComPtr<ID3D12Resource>				 pIIndexBuffer;
     ComPtr<ID3D12DescriptorHeap>		 pISRVHeap;
     ComPtr<ID3D12DescriptorHeap>		 pISamplerDescriptorHeap;
 
@@ -328,10 +426,11 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
     UpdateWindow(hwnd);
     g_hwnd = hwnd;
 
-#ifdef Render_Base_Rectangle_With_Texture
+
+    //利用WIC库获取纹理信息的流程
+#if defined(Render_Base_Rectangle_With_Texture) || defined(Render_Texture_Cube_With_Camera)
 
     //----------------------------------------------------------------------------------
-
     //使用纯COM方式创建WIC类厂对象，也是调用WIC第一步要做的事情
     hr = CoCreateInstance(CLSID_WICImagingFactory, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&pIWICFactory));
 
@@ -419,7 +518,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 
     //----------------------------------------------------------------------------------
 
-#endif // Render_Base_Rectangle_With_Texture
+#endif // Get texture information
 
     
 
@@ -454,7 +553,6 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
     D3D12CreateDevice(pIAdapter.Get(), D3D_FEATURE_LEVEL_12_1, IID_PPV_ARGS(&pID3DDevice));
 
     //----------------------------------------------------------------------------------
-
     //创建DX命令队列
     D3D12_COMMAND_QUEUE_DESC queueDesc = {};
     queueDesc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
@@ -516,7 +614,6 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
     nFrameIndex = pISwapChain3->GetCurrentBackBufferIndex();
 
     //----------------------------------------------------------------------------------
-
     //创建RTV描述符堆
     D3D12_DESCRIPTOR_HEAP_DESC rtvHeapDesc = {};
     rtvHeapDesc.NumDescriptors = nFrameBackBufCount;
@@ -537,101 +634,64 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
         rtvHandle.Offset(1, nRTVDescriptorSize);//迭代器offset
     }
 
-#ifdef Render_Base_Triangle
 
-    //创建根签名，描述整个的用于渲染的资源的存储布局
-    //整体上统一集中管理分散在各个资源创建函数参数中的存储Slot和对应寄存器序号的对象
-    //不用在创建某个资源时单独在其参数中指定对应哪个Slot和寄存器及序号了
-    //而是统一在D3D12中用一个根签名就将这些描述清楚
-    CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc = {};
-    rootSignatureDesc.Init(0, nullptr, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
-    ComPtr<ID3DBlob> signature;
-    ComPtr<ID3DBlob> error;
-
-    D3D12SerializeRootSignature(&rootSignatureDesc
-        , D3D_ROOT_SIGNATURE_VERSION_1
-        , &signature, &error);
-
-    pID3DDevice->CreateRootSignature(0
-        , signature->GetBufferPointer()
-        , signature->GetBufferSize()
-        , IID_PPV_ARGS(&pIRootSignature));
-#endif // Render_Base_Triangle
-
-
+    //创建SRV堆
 #ifdef Render_Base_Rectangle_With_Texture
 
-    //创建根描述符
-    D3D12_FEATURE_DATA_ROOT_SIGNATURE stFeatureData = {};
-    // 检测是否支持V1.1版本的根签名
-    stFeatureData.HighestVersion = D3D_ROOT_SIGNATURE_VERSION_1_1;
-    if (FAILED(pID3DDevice->CheckFeatureSupport(D3D12_FEATURE_ROOT_SIGNATURE, &stFeatureData, sizeof(stFeatureData))))
-    {
-        stFeatureData.HighestVersion = D3D_ROOT_SIGNATURE_VERSION_1_0;
-    }
+    //创建SRV堆 (Shader Resource View Heap) 纹理视图描述符
+    D3D12_DESCRIPTOR_HEAP_DESC stSRVHeapDesc = {};
+    stSRVHeapDesc.NumDescriptors = 1;
+    stSRVHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+    stSRVHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+    pID3DDevice->CreateDescriptorHeap(
+        &stSRVHeapDesc,
+        IID_PPV_ARGS(&pISRVHeap));
 
-    /*//静态采样器版本------------------------------------------------------------------------------
-    // 在GPU上执行SetGraphicsRootDescriptorTable后，不修改命令列表中的SRV，因此可以使用默认行为:
-    // D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC_WHILE_SET_AT_EXECUTE
-    CD3DX12_DESCRIPTOR_RANGE1 stDSPRanges[1] = {};
-    stDSPRanges[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0, 0, D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC_WHILE_SET_AT_EXECUTE);
+#endif // Render_Base_Rectangle_With_Texture
 
-    CD3DX12_ROOT_PARAMETER1 stRootParameters[1] = {};
-    stRootParameters[0].InitAsDescriptorTable(1, &stDSPRanges[0], D3D12_SHADER_VISIBILITY_PIXEL);
 
-    //定义一个静态的采样器对象
-    D3D12_STATIC_SAMPLER_DESC stSamplerDesc = {};
-    stSamplerDesc.Filter = D3D12_FILTER_MIN_MAG_MIP_POINT;
-    stSamplerDesc.AddressU = D3D12_TEXTURE_ADDRESS_MODE_BORDER;
-    stSamplerDesc.AddressV = D3D12_TEXTURE_ADDRESS_MODE_BORDER;
-    stSamplerDesc.AddressW = D3D12_TEXTURE_ADDRESS_MODE_BORDER;
-    stSamplerDesc.MipLODBias = 0;
-    stSamplerDesc.MaxAnisotropy = 0;
-    stSamplerDesc.ComparisonFunc = D3D12_COMPARISON_FUNC_NEVER;
-    stSamplerDesc.BorderColor = D3D12_STATIC_BORDER_COLOR_TRANSPARENT_BLACK;
-    stSamplerDesc.MinLOD = 0.0f;
-    stSamplerDesc.MaxLOD = D3D12_FLOAT32_MAX;
-    stSamplerDesc.ShaderRegister = 0;
-    stSamplerDesc.RegisterSpace = 0;
-    stSamplerDesc.ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
+    //创建SRV堆
+#ifdef Render_Texture_Cube_With_Camera
 
-    CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC stRootSignatureDesc = {};
-    stRootSignatureDesc.Init_1_1(
-        _countof(stRootParameters),
-        stRootParameters,
-        1,
-        &stSamplerDesc,
-        D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
-    //静态采样器版本------------------------------------------------------------------------------
-    */
-    
-    //动态采样器版本------------------------------------------------------------------------------
-    //创建采样器堆
+    //将纹理视图描述符和CBV描述符放在一个描述符堆上
+    D3D12_DESCRIPTOR_HEAP_DESC stSRVHeapDesc = {};
+    stSRVHeapDesc.NumDescriptors = 2; //1 SRV + 1 CBV
+    stSRVHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+    stSRVHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+    pID3DDevice->CreateDescriptorHeap(&stSRVHeapDesc, IID_PPV_ARGS(&pISRVHeap));
+
+#endif // Render_Texture_Cube_With_Camera
+
+
+    //动态采样器的创建流程
+#if defined(Render_Base_Rectangle_With_Texture) || defined(Render_Texture_Cube_With_Camera)
+
+    //声明和填充采样器堆结构体
     D3D12_DESCRIPTOR_HEAP_DESC stSamplerHeapDesc = {};
     stSamplerHeapDesc.NumDescriptors = nSampleMaxCnt;
     stSamplerHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER;
     stSamplerHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
-
+    //创建采样器堆
     pID3DDevice->CreateDescriptorHeap(
         &stSamplerHeapDesc,
         IID_PPV_ARGS(&pISamplerDescriptorHeap));
-
+    //获取采样器堆的大小，方便后续利用offset的形式创建多个采样器
     nSamplerDescriptorSize = pID3DDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER);
 
     CD3DX12_CPU_DESCRIPTOR_HANDLE hSamplerHeap(pISamplerDescriptorHeap->GetCPUDescriptorHandleForHeapStart());
 
     D3D12_SAMPLER_DESC stSamplerDesc = {};
-    stSamplerDesc.Filter = D3D12_FILTER_MIN_MAG_MIP_LINEAR;
+    stSamplerDesc.Filter = D3D12_FILTER_ANISOTROPIC;
     stSamplerDesc.MinLOD = 0;
     stSamplerDesc.MaxLOD = D3D12_FLOAT32_MAX;
     stSamplerDesc.MipLODBias = 0.0f;
-    stSamplerDesc.MaxAnisotropy = 1;
+    stSamplerDesc.MaxAnisotropy = D3D12_MAX_MAXANISOTROPY;
     stSamplerDesc.ComparisonFunc = D3D12_COMPARISON_FUNC_ALWAYS;
 
     // Sampler 1
-    stSamplerDesc.BorderColor[0] = 0.1f;
-    stSamplerDesc.BorderColor[1] = 0.4f;
-    stSamplerDesc.BorderColor[2] = 0.2f;
+    stSamplerDesc.BorderColor[0] = 0.0f;
+    stSamplerDesc.BorderColor[1] = 0.0f;
+    stSamplerDesc.BorderColor[2] = 0.0f;
     stSamplerDesc.BorderColor[3] = 1.0f;
     stSamplerDesc.AddressU = D3D12_TEXTURE_ADDRESS_MODE_BORDER;
     stSamplerDesc.AddressV = D3D12_TEXTURE_ADDRESS_MODE_BORDER;
@@ -670,7 +730,81 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
     stSamplerDesc.AddressW = D3D12_TEXTURE_ADDRESS_MODE_MIRROR_ONCE;
     pID3DDevice->CreateSampler(&stSamplerDesc, hSamplerHeap);
 
+#endif // Dynamic sampler creation
 
+
+    //根签名的创建
+#ifdef Render_Base_Triangle
+
+    //创建根签名，描述整个的用于渲染的资源的存储布局
+    //整体上统一集中管理分散在各个资源创建函数参数中的存储Slot和对应寄存器序号的对象
+    //不用在创建某个资源时单独在其参数中指定对应哪个Slot和寄存器及序号了
+    //而是统一在D3D12中用一个根签名就将这些描述清楚
+    CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc = {};
+    rootSignatureDesc.Init(0, nullptr, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
+    ComPtr<ID3DBlob> signature;
+    ComPtr<ID3DBlob> error;
+
+    D3D12SerializeRootSignature(&rootSignatureDesc
+        , D3D_ROOT_SIGNATURE_VERSION_1
+        , &signature, &error);
+
+    pID3DDevice->CreateRootSignature(0
+        , signature->GetBufferPointer()
+        , signature->GetBufferSize()
+        , IID_PPV_ARGS(&pIRootSignature));
+
+#endif // Render_Base_Triangle
+
+
+    //根签名的创建、shader的编译与顶点布局结构体
+#ifdef Render_Base_Rectangle_With_Texture
+
+    //创建根描述符
+    D3D12_FEATURE_DATA_ROOT_SIGNATURE stFeatureData = {};
+    // 检测是否支持V1.1版本的根签名
+    stFeatureData.HighestVersion = D3D_ROOT_SIGNATURE_VERSION_1_1;
+    if (FAILED(pID3DDevice->CheckFeatureSupport(D3D12_FEATURE_ROOT_SIGNATURE, &stFeatureData, sizeof(stFeatureData))))
+    {
+        stFeatureData.HighestVersion = D3D_ROOT_SIGNATURE_VERSION_1_0;
+    }
+    //创建根签名
+    /*//静态采样器版本------------------------------------------------------------------------------
+    // 在GPU上执行SetGraphicsRootDescriptorTable后，不修改命令列表中的SRV，因此可以使用默认行为:
+    // D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC_WHILE_SET_AT_EXECUTE
+    CD3DX12_DESCRIPTOR_RANGE1 stDSPRanges[1] = {};
+    stDSPRanges[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0, 0, D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC_WHILE_SET_AT_EXECUTE);
+
+    CD3DX12_ROOT_PARAMETER1 stRootParameters[1] = {};
+    stRootParameters[0].InitAsDescriptorTable(1, &stDSPRanges[0], D3D12_SHADER_VISIBILITY_PIXEL);
+
+    //定义一个静态的采样器对象
+    D3D12_STATIC_SAMPLER_DESC stSamplerDesc = {};
+    stSamplerDesc.Filter = D3D12_FILTER_MIN_MAG_MIP_POINT;
+    stSamplerDesc.AddressU = D3D12_TEXTURE_ADDRESS_MODE_BORDER;
+    stSamplerDesc.AddressV = D3D12_TEXTURE_ADDRESS_MODE_BORDER;
+    stSamplerDesc.AddressW = D3D12_TEXTURE_ADDRESS_MODE_BORDER;
+    stSamplerDesc.MipLODBias = 0;
+    stSamplerDesc.MaxAnisotropy = 0;
+    stSamplerDesc.ComparisonFunc = D3D12_COMPARISON_FUNC_NEVER;
+    stSamplerDesc.BorderColor = D3D12_STATIC_BORDER_COLOR_TRANSPARENT_BLACK;
+    stSamplerDesc.MinLOD = 0.0f;
+    stSamplerDesc.MaxLOD = D3D12_FLOAT32_MAX;
+    stSamplerDesc.ShaderRegister = 0;
+    stSamplerDesc.RegisterSpace = 0;
+    stSamplerDesc.ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
+
+    CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC stRootSignatureDesc = {};
+    stRootSignatureDesc.Init_1_1(
+        _countof(stRootParameters),
+        stRootParameters,
+        1,
+        &stSamplerDesc,
+        D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
+    //------------------------------------------------------------------------------
+    */
+    
+    //动态采样器版本------------------------------------------------------------------------------
     CD3DX12_DESCRIPTOR_RANGE1 stDSPRanges[2] = {};
     stDSPRanges[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0, 0, D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC_WHILE_SET_AT_EXECUTE);
     stDSPRanges[1].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER, 1, 0);
@@ -679,7 +813,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
     stRootParameters[0].InitAsDescriptorTable(1, &stDSPRanges[0], D3D12_SHADER_VISIBILITY_PIXEL);
     stRootParameters[1].InitAsDescriptorTable(1, &stDSPRanges[1], D3D12_SHADER_VISIBILITY_PIXEL);
 
-    CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC stRootSignatureDesc;
+    CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC stRootSignatureDesc = {};
     
     stRootSignatureDesc.Init_1_1(
         _countof(stRootParameters),
@@ -687,7 +821,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
         0,
         nullptr,
         D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
-    //动态采样器版本------------------------------------------------------------------------------
+    //------------------------------------------------------------------------------
 
     ComPtr<ID3DBlob> pISignatureBlob;
     ComPtr<ID3DBlob> pIErrorBlob;
@@ -704,6 +838,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
         pISignatureBlob->GetBufferSize(),
         IID_PPV_ARGS(&pIRootSignature));
 
+    //---------------------------------------------------------------------------------------------
     //编译Shader
 #if defined(_DEBUG)
     UINT compileFlags = D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
@@ -723,6 +858,84 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
         { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
         { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 }
     };
+
+#endif // Render_Base_Rectangle_With_Texture
+
+
+    //根签名的创建、shader的编译与顶点布局结构体
+#ifdef Render_Texture_Cube_With_Camera
+
+    //创建根描述符
+    D3D12_FEATURE_DATA_ROOT_SIGNATURE stFeatureData = {};
+    // 检测是否支持V1.1版本的根签名
+    stFeatureData.HighestVersion = D3D_ROOT_SIGNATURE_VERSION_1_1;
+    if (FAILED(pID3DDevice->CheckFeatureSupport(D3D12_FEATURE_ROOT_SIGNATURE, &stFeatureData, sizeof(stFeatureData))))
+    {
+        stFeatureData.HighestVersion = D3D_ROOT_SIGNATURE_VERSION_1_0;
+    }
+
+    CD3DX12_DESCRIPTOR_RANGE1 stDSPRanges[3] = {};
+    stDSPRanges[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0, 0, D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC_WHILE_SET_AT_EXECUTE);
+    stDSPRanges[1].Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 1, 0);
+    stDSPRanges[2].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER, 1, 0);
+
+    CD3DX12_ROOT_PARAMETER1 stRootParameters[3] = {};
+    stRootParameters[0].InitAsDescriptorTable(1, &stDSPRanges[0], D3D12_SHADER_VISIBILITY_PIXEL);//SRV仅PS可见
+    stRootParameters[1].InitAsDescriptorTable(1, &stDSPRanges[1], D3D12_SHADER_VISIBILITY_ALL); //CBV是所有Shader可见
+    stRootParameters[2].InitAsDescriptorTable(1, &stDSPRanges[2], D3D12_SHADER_VISIBILITY_PIXEL);//SAMPLE仅PS可见
+
+    CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC stRootSignatureDesc = {};
+
+    stRootSignatureDesc.Init_1_1(
+        _countof(stRootParameters),
+        stRootParameters,
+        0,
+        nullptr,
+        D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
+    //------------------------------------------------------------------------------
+
+    ComPtr<ID3DBlob> pISignatureBlob;
+    ComPtr<ID3DBlob> pIErrorBlob;
+    D3DX12SerializeVersionedRootSignature(
+        &stRootSignatureDesc,
+        stFeatureData.HighestVersion,
+        &pISignatureBlob,
+        &pIErrorBlob);
+
+    pID3DDevice->CreateRootSignature(
+        0,
+        pISignatureBlob->GetBufferPointer(),
+        pISignatureBlob->GetBufferSize(),
+        IID_PPV_ARGS(&pIRootSignature));
+
+    //---------------------------------------------------------------------------------------------
+    //编译Shader
+#if defined(_DEBUG)
+    UINT compileFlags = D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
+#else
+    UINT compileFlags = 0;
+#endif
+
+    TCHAR pszShaderFileName[] = _T("D:\\OneDrive - University of Exeter\\MSc Advanced Computer Science\\Code Dir\\ACS Final Project\\FinalPorject\\ACS Final Project\\ACS Final Project\\Shaders\\texture_cube.hlsl");
+    D3DCompileFromFile(pszShaderFileName, nullptr, nullptr
+        , "VSMain", "vs_5_0", compileFlags, 0, &pIBlobVertexShader, nullptr);
+    D3DCompileFromFile(pszShaderFileName, nullptr, nullptr
+        , "PSMain", "ps_5_0", compileFlags, 0, &pIBlobPixelShader, nullptr);
+
+    //声明和填充用于描述顶点输入布局的结构体
+    D3D12_INPUT_ELEMENT_DESC stInputElementDescs[] =
+    {
+        { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+        { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+        { "NORMAL", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 20, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 }
+    };
+
+#endif // Render_Texture_Cube_With_Camera
+
+
+
+    //渲染管线状态对象的创建与纹理资源的上传流程
+#if defined(Render_Base_Rectangle_With_Texture) || defined(Render_Texture_Cube_With_Camera)
 
     //创建渲染管线状态对象
     D3D12_GRAPHICS_PIPELINE_STATE_DESC stPSODesc = {};
@@ -789,7 +1002,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
     pID3DDevice->CreateHeap(
         &stTextureHeapDesc,
         IID_PPV_ARGS(&pITextureHeap));
-
+    //使用“定位方式”来创建纹理
     pID3DDevice->CreatePlacedResource(
         pITextureHeap.Get(),
         0,
@@ -840,7 +1053,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
     pID3DDevice->CreateHeap(
         &stUploadHeapDesc,
         IID_PPV_ARGS(&pIUploadHeap));
-
+    //使用“定位方式”创建用于上传纹理数据的缓冲资源
     D3D12_RESOURCE_DESC stTextureUploadDesc = CD3DX12_RESOURCE_DESC::Buffer(n64UploadBufferSize);
     pID3DDevice->CreatePlacedResource(
         pIUploadHeap.Get(),
@@ -865,7 +1078,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
         , static_cast<UINT>(nPicRowPitch * nTextureH)   //注意这里才是图片数据真实的大小，这个值通常小于缓冲的大小
         , reinterpret_cast<BYTE*>(pbPicData));
 
-
+    //---------------------------------------------------------------------------------------------
     //获取向上传堆拷贝纹理数据的一些纹理转换尺寸信息
     //对于复杂的DDS纹理这是非常必要的过程
     UINT64 n64RequiredSize = 0u;
@@ -908,7 +1121,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
     //释放图片数据，做一个干净的程序员
     ::HeapFree(::GetProcessHeap(), 0, pbPicData);
 
-
+    //---------------------------------------------------------------------------------------------
     //向命令队列发出从上传堆复制纹理数据到默认堆的命令
     CD3DX12_TEXTURE_COPY_LOCATION Dst(pITexture.Get(), 0);
     CD3DX12_TEXTURE_COPY_LOCATION Src(pITextureUpload.Get(), stTxtLayouts);
@@ -927,6 +1140,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
     stResBar1.Transition.pResource = pITexture.Get();
 
     pICommandList->ResourceBarrier(1, &stResBar1);
+
     //---------------------------------------------------------------------------------------------
     // 执行命令列表并等待纹理资源上传完成，这一步是必须的
     pICommandList->Close();
@@ -937,6 +1151,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
     const UINT64 fence = n64FenceValue;
     pICommandQueue->Signal(pIFence.Get(), fence);
     n64FenceValue++;
+
     //---------------------------------------------------------------------------------------------
     // 看命令有没有真正执行到围栏标记的这里，没有就利用事件去等待，注意使用的是命令队列对象的指针
     if (pIFence->GetCompletedValue() < fence)
@@ -951,24 +1166,15 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
     pICommandList->Reset(pICommandAllocator.Get(), pIPipelineState.Get());
 
     //---------------------------------------------------------------------------------------------
-
-    //创建SRV堆 (Shader Resource View Heap)
-    D3D12_DESCRIPTOR_HEAP_DESC stSRVHeapDesc = {};
-    stSRVHeapDesc.NumDescriptors = 1;
-    stSRVHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-    stSRVHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
-    pID3DDevice->CreateDescriptorHeap(&stSRVHeapDesc, IID_PPV_ARGS(&pISRVHeap));
-    //创建SRV描述符
-    D3D12_SHADER_RESOURCE_VIEW_DESC stSRVDesc = {};
-    stSRVDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-    stSRVDesc.Format = stTextureDesc.Format;
-    stSRVDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
-    stSRVDesc.Texture2D.MipLevels = 1;
-    pID3DDevice->CreateShaderResourceView(pITexture.Get(), &stSRVDesc, pISRVHeap->GetCPUDescriptorHandleForHeapStart());
+#endif //渲染管线状态对象的创建与纹理资源的上传流程
 
 
+    //pIVertexBuffer的创建与上传流程
+#ifdef Render_Base_Rectangle_With_Texture
+
+    //---------------------------------------------------------------------------------------------
     //创建顶点缓冲
-    // 定义正方形的3D数据结构
+    // 定义矩形的3D数据结构
     GRS_VERTEX stTriangleVertices[] =
     {
         { { -0.25f * fAspectRatio, -0.25f * fAspectRatio, 0.0f}, { 0.0f, 3.0f } },	// Bottom left.
@@ -978,6 +1184,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
     };
 
     const UINT nVertexBufferSize = sizeof(stTriangleVertices);
+
+    /*//committed版本------------------------------------------------------------------------------
 
     D3D12_RESOURCE_DESC stResSesc = {};
     stResSesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
@@ -991,8 +1199,6 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
     stResSesc.SampleDesc.Count = 1;
     stResSesc.SampleDesc.Quality = 0;
 
-    /*//committed版本------------------------------------------------------------------------------
-
     D3D12_HEAP_PROPERTIES stHeapProp1 = { D3D12_HEAP_TYPE_UPLOAD };//Upload的概念就是从CPU内存上传到显存中的意思
     pID3DDevice->CreateCommittedResource(
         &stHeapProp1,
@@ -1004,7 +1210,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 
     //committed版本------------------------------------------------------------------------------
     */
-    
+
     //使用与上传纹理数据缓冲相同的一个上传堆
     //注意第二个参数指出了堆中的偏移位置
     //按照堆边界对齐的要求，使用GRS_UPPER主动将偏移位置对齐到了64k的边界上
@@ -1033,12 +1239,186 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
     stVertexBufferView.StrideInBytes = sizeof(GRS_VERTEX);
     stVertexBufferView.SizeInBytes = nVertexBufferSize;
 
+    //创建SRV描述符
+    D3D12_SHADER_RESOURCE_VIEW_DESC stSRVDesc = {};
+    stSRVDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+    stSRVDesc.Format = stTextureDesc.Format;
+    stSRVDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+    stSRVDesc.Texture2D.MipLevels = 1;
+    pID3DDevice->CreateShaderResourceView(
+        pITexture.Get(),
+        &stSRVDesc,
+        pISRVHeap->GetCPUDescriptorHandleForHeapStart());
+
+
 #endif // Render_Base_Rectangle_With_Texture
 
     
+    //pIVertexBuffer、pIIndexBuffer与常量缓冲的创建与上传流程
+#ifdef Render_Texture_Cube_With_Camera
 
+    //定义正方体的3D数据结构，注意此处的纹理坐标我故意设置为大于1
+    ST_GRS_VERTEX stTriangleVertices[] = {
+        { {-1.0f * fBoxSize,  1.0f * fBoxSize, -1.0f * fBoxSize}, {0.0f * fTCMax, 0.0f * fTCMax}, {0.0f,  0.0f, -1.0f} },
+        { {1.0f * fBoxSize,  1.0f * fBoxSize, -1.0f * fBoxSize}, {1.0f * fTCMax, 0.0f * fTCMax},  {0.0f,  0.0f, -1.0f} },
+        { {-1.0f * fBoxSize, -1.0f * fBoxSize, -1.0f * fBoxSize}, {0.0f * fTCMax, 1.0f * fTCMax}, {0.0f,  0.0f, -1.0f} },
+        { {-1.0f * fBoxSize, -1.0f * fBoxSize, -1.0f * fBoxSize}, {0.0f * fTCMax, 1.0f * fTCMax}, {0.0f,  0.0f, -1.0f} },
+        { {1.0f * fBoxSize,  1.0f * fBoxSize, -1.0f * fBoxSize}, {1.0f * fTCMax, 0.0f * fTCMax},  {0.0f, 0.0f, -1.0f} },
+        { {1.0f * fBoxSize, -1.0f * fBoxSize, -1.0f * fBoxSize}, {1.0f * fTCMax, 1.0f * fTCMax},  {0.0f,  0.0f, -1.0f} },
+        { {1.0f * fBoxSize,  1.0f * fBoxSize, -1.0f * fBoxSize}, {0.0f * fTCMax, 0.0f * fTCMax},  {1.0f,  0.0f,  0.0f} },
+        { {1.0f * fBoxSize,  1.0f * fBoxSize,  1.0f * fBoxSize}, {1.0f * fTCMax, 0.0f * fTCMax},  {1.0f,  0.0f,  0.0f} },
+        { {1.0f * fBoxSize, -1.0f * fBoxSize, -1.0f * fBoxSize}, {0.0f * fTCMax, 1.0f * fTCMax},  {1.0f,  0.0f,  0.0f} },
+        { {1.0f * fBoxSize, -1.0f * fBoxSize, -1.0f * fBoxSize}, {0.0f * fTCMax, 1.0f * fTCMax},  {1.0f,  0.0f,  0.0f} },
+        { {1.0f * fBoxSize,  1.0f * fBoxSize,  1.0f * fBoxSize}, {1.0f * fTCMax, 0.0f * fTCMax},  {1.0f,  0.0f,  0.0f} },
+        { {1.0f * fBoxSize, -1.0f * fBoxSize,  1.0f * fBoxSize}, {1.0f * fTCMax, 1.0f * fTCMax},  {1.0f,  0.0f,  0.0f} },
+        { {1.0f * fBoxSize,  1.0f * fBoxSize,  1.0f * fBoxSize}, {0.0f * fTCMax, 0.0f * fTCMax},  {0.0f,  0.0f,  1.0f} },
+        { {-1.0f * fBoxSize,  1.0f * fBoxSize,  1.0f * fBoxSize}, {1.0f * fTCMax, 0.0f * fTCMax},  {0.0f,  0.0f,  1.0f} },
+        { {1.0f * fBoxSize, -1.0f * fBoxSize,  1.0f * fBoxSize}, {0.0f * fTCMax, 1.0f * fTCMax}, {0.0f,  0.0f,  1.0f} },
+        { {1.0f * fBoxSize, -1.0f * fBoxSize,  1.0f * fBoxSize}, {0.0f * fTCMax, 1.0f * fTCMax},  {0.0f,  0.0f,  1.0f} },
+        { {-1.0f * fBoxSize,  1.0f * fBoxSize,  1.0f * fBoxSize}, {1.0f * fTCMax, 0.0f * fTCMax},  {0.0f,  0.0f,  1.0f} },
+        { {-1.0f * fBoxSize, -1.0f * fBoxSize,  1.0f * fBoxSize}, {1.0f * fTCMax, 1.0f * fTCMax},  {0.0f,  0.0f,  1.0f} },
+        { {-1.0f * fBoxSize,  1.0f * fBoxSize,  1.0f * fBoxSize}, {0.0f * fTCMax, 0.0f * fTCMax}, {-1.0f,  0.0f,  0.0f} },
+        { {-1.0f * fBoxSize,  1.0f * fBoxSize, -1.0f * fBoxSize}, {1.0f * fTCMax, 0.0f * fTCMax}, {-1.0f,  0.0f,  0.0f} },
+        { {-1.0f * fBoxSize, -1.0f * fBoxSize,  1.0f * fBoxSize}, {0.0f * fTCMax, 1.0f * fTCMax}, {-1.0f,  0.0f,  0.0f} },
+        { {-1.0f * fBoxSize, -1.0f * fBoxSize,  1.0f * fBoxSize}, {0.0f * fTCMax, 1.0f * fTCMax}, {-1.0f,  0.0f,  0.0f} },
+        { {-1.0f * fBoxSize,  1.0f * fBoxSize, -1.0f * fBoxSize}, {1.0f * fTCMax, 0.0f * fTCMax}, {-1.0f,  0.0f,  0.0f} },
+        { {-1.0f * fBoxSize, -1.0f * fBoxSize, -1.0f * fBoxSize}, {1.0f * fTCMax, 1.0f * fTCMax}, {-1.0f,  0.0f,  0.0f} },
+        { {-1.0f * fBoxSize,  1.0f * fBoxSize,  1.0f * fBoxSize}, {0.0f * fTCMax, 0.0f * fTCMax},  {0.0f,  1.0f,  0.0f} },
+        { {1.0f * fBoxSize,  1.0f * fBoxSize,  1.0f * fBoxSize}, {1.0f * fTCMax, 0.0f * fTCMax},  {0.0f,  1.0f,  0.0f} },
+        { {-1.0f * fBoxSize,  1.0f * fBoxSize, -1.0f * fBoxSize}, {0.0f * fTCMax, 1.0f * fTCMax},  {0.0f,  1.0f,  0.0f} },
+        { {-1.0f * fBoxSize,  1.0f * fBoxSize, -1.0f * fBoxSize}, {0.0f * fTCMax, 1.0f * fTCMax},  {0.0f,  1.0f,  0.0f} },
+        { {1.0f * fBoxSize,  1.0f * fBoxSize,  1.0f * fBoxSize}, {1.0f * fTCMax, 0.0f * fTCMax},  {0.0f,  1.0f,  0.0f} },
+        { {1.0f * fBoxSize,  1.0f * fBoxSize, -1.0f * fBoxSize}, {1.0f * fTCMax, 1.0f * fTCMax},  {0.0f,  1.0f,  0.0f }},
+        { {-1.0f * fBoxSize, -1.0f * fBoxSize, -1.0f * fBoxSize}, {0.0f * fTCMax, 0.0f * fTCMax},  {0.0f, -1.0f,  0.0f} },
+        { {1.0f * fBoxSize, -1.0f * fBoxSize, -1.0f * fBoxSize}, {1.0f * fTCMax, 0.0f * fTCMax},  {0.0f, -1.0f,  0.0f} },
+        { {-1.0f * fBoxSize, -1.0f * fBoxSize,  1.0f * fBoxSize}, {0.0f * fTCMax, 1.0f * fTCMax},  {0.0f, -1.0f,  0.0f} },
+        { {-1.0f * fBoxSize, -1.0f * fBoxSize,  1.0f * fBoxSize}, {0.0f * fTCMax, 1.0f * fTCMax},  {0.0f, -1.0f,  0.0f} },
+        { {1.0f * fBoxSize, -1.0f * fBoxSize, -1.0f * fBoxSize}, {1.0f * fTCMax, 0.0f * fTCMax},  {0.0f, -1.0f,  0.0f} },
+        { {1.0f * fBoxSize, -1.0f * fBoxSize,  1.0f * fBoxSize}, {1.0f * fTCMax, 1.0f * fTCMax},  {0.0f, -1.0f,  0.0f} },
+    };
+
+    const UINT nVertexBufferSize = sizeof(stTriangleVertices);
+
+    UINT32 pBoxIndices[] //立方体索引数组
+        = {
+        0,1,2,
+        3,4,5,
+
+        6,7,8,
+        9,10,11,
+
+        12,13,14,
+        15,16,17,
+
+        18,19,20,
+        21,22,23,
+
+        24,25,26,
+        27,28,29,
+
+        30,31,32,
+        33,34,35,
+    };
+
+    const UINT nszIndexBuffer = sizeof(pBoxIndices);
+
+    //获取当前上传堆偏移量
+    UINT64 n64BufferOffset = GRS_UPPER(n64UploadBufferSize, D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT);
+    
+    //使用与上传纹理数据缓冲相同的一个上传堆
+    //注意第二个参数指出了堆中的偏移位置
+    //按照堆边界对齐的要求，使用GRS_UPPER主动将偏移位置对齐到了64k的边界上
+    //placed版本------------------------------------------------------------------------------
+
+    D3D12_RESOURCE_DESC stVertexUploadDesc = CD3DX12_RESOURCE_DESC::Buffer(nVertexBufferSize);
+    pID3DDevice->CreatePlacedResource(
+        pIUploadHeap.Get(),//使用的是和上传纹理数据缓冲相同的一个堆
+        n64BufferOffset,//堆偏移
+        &stVertexUploadDesc,
+        D3D12_RESOURCE_STATE_GENERIC_READ,
+        nullptr,
+        IID_PPV_ARGS(&pIVertexBuffer));
+
+    //placed版本------------------------------------------------------------------------------
+
+    //上述核心即为得到要绘制的顶点buffer，用于下面将绘制数据从CPU内存向显存进行传递
+    UINT8* pVertexDataBegin = nullptr;
+    CD3DX12_RANGE stReadRange(0, 0);
+    pIVertexBuffer->Map(0, &stReadRange, reinterpret_cast<void**>(&pVertexDataBegin));
+    memcpy(pVertexDataBegin, stTriangleVertices, sizeof(stTriangleVertices));
+    pIVertexBuffer->Unmap(0, nullptr);
+
+    //填充顶点buffer视图的结构体，告诉GPU被描述的资源是Vertex Buffer
+    stVertexBufferView.BufferLocation = pIVertexBuffer->GetGPUVirtualAddress();
+    stVertexBufferView.StrideInBytes = sizeof(ST_GRS_VERTEX);
+    stVertexBufferView.SizeInBytes = nVertexBufferSize;
+
+    //更新上传堆偏移量
+    n64BufferOffset = GRS_UPPER(n64BufferOffset + nVertexBufferSize, D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT);
+    
+    D3D12_RESOURCE_DESC stVertexIndexUploadDesc = CD3DX12_RESOURCE_DESC::Buffer(nszIndexBuffer);
+    //还是使用同一个上传堆，创建顶点索引资源对象
+    pID3DDevice->CreatePlacedResource(
+        pIUploadHeap.Get(),
+        n64BufferOffset,
+        &stVertexIndexUploadDesc,
+        D3D12_RESOURCE_STATE_GENERIC_READ,
+        nullptr,
+        IID_PPV_ARGS(&pIIndexBuffer));
+    
+    //上述核心即为得到要绘制的顶点索引buffer，用于下面将绘制数据从CPU内存向显存进行传递
+    UINT8* pIndexDataBegin = nullptr;
+    pIIndexBuffer->Map(0, &stReadRange, reinterpret_cast<void**>(&pIndexDataBegin));
+    memcpy(pIndexDataBegin, pBoxIndices, nszIndexBuffer);
+    pIIndexBuffer->Unmap(0, nullptr);
+
+    //填充顶点buffer视图的结构体，告诉GPU被描述的资源是Index Buffer
+    stIndexBufferView.BufferLocation = pIIndexBuffer->GetGPUVirtualAddress();
+    stIndexBufferView.Format = DXGI_FORMAT_R32_UINT;
+    stIndexBufferView.SizeInBytes = nszIndexBuffer;
     
 
+    //再次更新上传堆偏移量
+    n64BufferOffset = GRS_UPPER(n64BufferOffset + nszIndexBuffer, D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT);
+
+    D3D12_RESOURCE_DESC stCBVUploadDesc = CD3DX12_RESOURCE_DESC::Buffer(szMVPBuffer);
+    //还是使用同一个上传堆，创建常量缓冲资源对象 注意缓冲尺寸设置为256边界对齐大小
+    pID3DDevice->CreatePlacedResource(
+        pIUploadHeap.Get()
+        , n64BufferOffset
+        , &stCBVUploadDesc
+        , D3D12_RESOURCE_STATE_GENERIC_READ
+        , nullptr
+        , IID_PPV_ARGS(&pICBVUpload));
+
+    // Map 之后就不再Unmap了 直接复制数据进去 这样每帧都不用map-copy-unmap浪费时间了
+    pICBVUpload->Map(0, nullptr, reinterpret_cast<void**>(&pMVPBuffer));
+
+    //创建SRV描述符
+    D3D12_SHADER_RESOURCE_VIEW_DESC stSRVDesc = {};
+    stSRVDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+    stSRVDesc.Format = stTextureDesc.Format;
+    stSRVDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+    stSRVDesc.Texture2D.MipLevels = 1;
+    pID3DDevice->CreateShaderResourceView(
+        pITexture.Get(),
+        &stSRVDesc,
+        pISRVHeap->GetCPUDescriptorHandleForHeapStart());
+
+    //创建CBV描述符
+    D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc = {};
+    cbvDesc.BufferLocation = pICBVUpload->GetGPUVirtualAddress();
+    cbvDesc.SizeInBytes = static_cast<UINT>(szMVPBuffer);
+
+    CD3DX12_CPU_DESCRIPTOR_HANDLE cbvSrvHandle(
+        pISRVHeap->GetCPUDescriptorHandleForHeapStart(),
+        1,
+        pID3DDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV));
+
+    pID3DDevice->CreateConstantBufferView(&cbvDesc, cbvSrvHandle);
+    
+
+#endif // Render_Texture_Cube_With_Camera
 
 
 #ifdef Render_Base_Triangle
@@ -1156,114 +1536,29 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
     //创建定时器对象，以便于创建高效的消息循环
     HANDLE phWait = CreateWaitableTimer(NULL, FALSE, NULL);
     LARGE_INTEGER liDueTime = {};
-
     liDueTime.QuadPart = -1i64;//1秒后开始计时
+
     if (phWait)
-        SetWaitableTimer(phWait, &liDueTime, 1000, NULL, NULL, 0);//可在此设置时间周期，单位为毫秒
-        //此处1000毫秒指的是每过一秒进行一次消息循环
+        SetWaitableTimer(phWait, &liDueTime, 1, NULL, NULL, 0);//可在此设置时间周期
+    
+    //记录帧开始时间，和当前时间，以循环结束为界
+    ULONGLONG n64tmFrameStart = ::GetTickCount64();
+    ULONGLONG n64tmCurrent = n64tmFrameStart;
+    //计算旋转角度需要的变量
+    double dModelRotationYAngle = 0.0f;
+    
     //开始消息循环，并在其中不断渲染
     DWORD dwRet = 0;
     BOOL bExit = FALSE;
     while (!bExit)
     {
-        dwRet = ::MsgWaitForMultipleObjects(1, &phWait, FALSE, INFINITE, QS_ALLINPUT);
+        dwRet = ::MsgWaitForMultipleObjects(1, &phWait, FALSE, 0, QS_ALLINPUT);
         switch (dwRet - WAIT_OBJECT_0)
         {
         case 0:
         case WAIT_TIMEOUT:
         {//计时器时间到
-             //开始记录命令
-            pICommandList->SetGraphicsRootSignature(pIRootSignature.Get());
-
-#ifdef Render_Base_Rectangle_With_Texture
-            /*//静态采样器版本------------------------------------------------------------------------------
-            ID3D12DescriptorHeap* ppHeaps[] = { pISRVHeap.Get() };
-            pICommandList->SetDescriptorHeaps(_countof(ppHeaps), ppHeaps);
-            pICommandList->SetGraphicsRootDescriptorTable(0, pISRVHeap->GetGPUDescriptorHandleForHeapStart());
-            //静态采样器版本------------------------------------------------------------------------------
-            */
-
-            //动态采样器版本------------------------------------------------------------------------------
-            ID3D12DescriptorHeap* ppHeaps[] = { pISRVHeap.Get(),pISamplerDescriptorHeap.Get() };
-            pICommandList->SetDescriptorHeaps(_countof(ppHeaps), ppHeaps);
-            pICommandList->SetGraphicsRootDescriptorTable(0, pISRVHeap->GetGPUDescriptorHandleForHeapStart());
-
-            CD3DX12_GPU_DESCRIPTOR_HANDLE hGPUSampler(
-                pISamplerDescriptorHeap->GetGPUDescriptorHandleForHeapStart(),
-                nCurrentSamplerNO,
-                nSamplerDescriptorSize);
-
-            pICommandList->SetGraphicsRootDescriptorTable(1, hGPUSampler);
-            //动态采样器版本------------------------------------------------------------------------------
-#endif // Render_Base_Rectangle_With_Texture
-
-            pICommandList->RSSetViewports(1, &stViewPort);
-            pICommandList->RSSetScissorRects(1, &stScissorRect);
-
-
-            // 通过资源屏障判定后缓冲已经切换完毕可以开始渲染了
-            stBeginResBarrier.Transition.pResource = pIARenderTargets[nFrameIndex].Get();
-            pICommandList->ResourceBarrier(1, &stBeginResBarrier);
-
-            CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(pIRTVHeap->GetCPUDescriptorHandleForHeapStart()
-                , nFrameIndex
-                , nRTVDescriptorSize);
-
-            //设置渲染目标
-            pICommandList->OMSetRenderTargets(1, &rtvHandle, FALSE, nullptr);
-            // 继续记录命令，并真正开始新一帧的渲染
-            const float clearColor[] = { 0.0f, 0.2f, 0.4f, 1.0f };
-            pICommandList->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
-            pICommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
-            pICommandList->IASetVertexBuffers(0, 1, &stVertexBufferView);
-            //Draw Call
-#ifdef Render_Base_Triangle
-            pICommandList->DrawInstanced(3, 1, 0, 0);
-#endif // Render_Base_Triangle
-
-#ifdef Render_Base_Rectangle_With_Texture
-            pICommandList->DrawInstanced(_countof(stTriangleVertices), 1, 0, 0);
-#endif // Render_Base_Rectangle_With_Texture
-
-            //又一个资源屏障，用于确定渲染已经结束可以提交画面去显示了
-            stEndResBarrier.Transition.pResource = pIARenderTargets[nFrameIndex].Get();
-            pICommandList->ResourceBarrier(1, &stEndResBarrier);
-            //关闭命令列表，可以去执行了
-            pICommandList->Close();
-            //执行命令列表
-            ID3D12CommandList* ppCommandLists[] = { pICommandList.Get() };
-            pICommandQueue->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
-
-            //提交画面
-            pISwapChain3->Present(1, 0);
-            //开始同步GPU与CPU的执行，先记录围栏标记值
-            const UINT64 fence = n64FenceValue;
-            pICommandQueue->Signal(pIFence.Get(), fence);
-            n64FenceValue++;
-
-            // 看命令有没有真正执行到围栏标记的这里，没有就利用事件去等待，注意使用的是命令队列对象的指针
-            if (pIFence->GetCompletedValue() < fence)
-            {
-                pIFence->SetEventOnCompletion(fence, hFenceEvent);
-                WaitForSingleObject(hFenceEvent, INFINITE);
-            }
-
-            //到这里说明一个命令队列完整的执行完了，在这里就代表我们的一帧已经渲染完了，接着准备执行下一帧//渲染
-            //获取新的后缓冲序号，因为Present真正完成时后缓冲的序号就更新了
-            nFrameIndex = pISwapChain3->GetCurrentBackBufferIndex();
-            //命令分配器先Reset一下
-            pICommandAllocator->Reset();
-            //Reset命令列表，并重新指定命令分配器和PSO对象
-            pICommandList->Reset(pICommandAllocator.Get(), pIPipelineState.Get());
-
-
-            nFrame++;
-            wstring str1 = L"第";
-            wstring str2 = to_wstring(nFrame);
-            wstring str3 = L"帧绘制完成\n";
-            wstring result = str1 + str2 + str3;
-            LPCWSTR frameInfo = result.c_str();
-            OutputDebugString(frameInfo);
+             
 
         }
         break;
@@ -1286,6 +1581,166 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
         default:
             break;
         }
+
+
+        //开始记录命令
+        pICommandList->SetGraphicsRootSignature(pIRootSignature.Get());
+
+#ifdef Render_Texture_Cube_With_Camera
+
+        n64tmCurrent = ::GetTickCount64();
+        
+        //计算旋转的角度：旋转角度(弧度) = 时间(秒) * 角速度(弧度/秒)
+        //经典消息循环中的OnUpdate函数中需要做的事情
+        dModelRotationYAngle += ((n64tmCurrent - n64tmFrameStart) / 1000.0f) * fPalstance;
+
+        n64tmFrameStart = n64tmCurrent;
+
+        //旋转角度是2PI周期的倍数，去掉周期数，只留下相对0弧度开始的小于2PI的弧度即可
+        if (dModelRotationYAngle > XM_2PI)
+        {
+            dModelRotationYAngle = fmod(dModelRotationYAngle, XM_2PI);
+        }
+
+        //模型矩阵 model
+        XMMATRIX xmRot = XMMatrixRotationY(static_cast<float>(dModelRotationYAngle));
+
+        //计算 模型矩阵 model * 视矩阵 view
+        XMMATRIX xmMVP = XMMatrixMultiply(xmRot, XMMatrixLookAtLH(Eye, At, Up));
+
+        //投影矩阵 projection
+        xmMVP = XMMatrixMultiply(xmMVP, (XMMatrixPerspectiveFovLH(XM_PIDIV4, (FLOAT)iWidth / (FLOAT)iHeight, 0.1f, 1000.0f)));
+
+        XMStoreFloat4x4(&pMVPBuffer->m_MVP, xmMVP);
+        
+        //---------------------------------------------------------------------------------------------
+
+        ID3D12DescriptorHeap* ppHeaps[] = { pISRVHeap.Get(),pISamplerDescriptorHeap.Get() };
+        pICommandList->SetDescriptorHeaps(_countof(ppHeaps), ppHeaps);
+        //设置SRV
+        pICommandList->SetGraphicsRootDescriptorTable(0, pISRVHeap->GetGPUDescriptorHandleForHeapStart());
+
+
+        CD3DX12_GPU_DESCRIPTOR_HANDLE stGPUCBVHandle(
+            pISRVHeap->GetGPUDescriptorHandleForHeapStart(),
+            1,
+            pID3DDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV));
+        //设置CBV
+        pICommandList->SetGraphicsRootDescriptorTable(1, stGPUCBVHandle);
+        
+
+        CD3DX12_GPU_DESCRIPTOR_HANDLE hGPUSampler(
+            pISamplerDescriptorHeap->GetGPUDescriptorHandleForHeapStart(),
+            nCurrentSamplerNO,
+            nSamplerDescriptorSize);
+        //设置Sampler
+        pICommandList->SetGraphicsRootDescriptorTable(2, hGPUSampler);
+
+#endif // Render_Texture_Cube_With_Camera
+
+        
+
+
+#ifdef Render_Base_Rectangle_With_Texture
+        /*//静态采样器版本------------------------------------------------------------------------------
+        ID3D12DescriptorHeap* ppHeaps[] = { pISRVHeap.Get() };
+        pICommandList->SetDescriptorHeaps(_countof(ppHeaps), ppHeaps);
+        pICommandList->SetGraphicsRootDescriptorTable(0, pISRVHeap->GetGPUDescriptorHandleForHeapStart());
+        //静态采样器版本------------------------------------------------------------------------------
+        */
+
+        //动态采样器版本------------------------------------------------------------------------------
+        ID3D12DescriptorHeap* ppHeaps[] = { pISRVHeap.Get(),pISamplerDescriptorHeap.Get() };
+        pICommandList->SetDescriptorHeaps(_countof(ppHeaps), ppHeaps);
+        //设置SRV
+        pICommandList->SetGraphicsRootDescriptorTable(0, pISRVHeap->GetGPUDescriptorHandleForHeapStart());
+
+        CD3DX12_GPU_DESCRIPTOR_HANDLE hGPUSampler(
+            pISamplerDescriptorHeap->GetGPUDescriptorHandleForHeapStart(),
+            nCurrentSamplerNO,
+            nSamplerDescriptorSize);
+        //设置Sampler
+        pICommandList->SetGraphicsRootDescriptorTable(1, hGPUSampler);
+        //动态采样器版本------------------------------------------------------------------------------
+#endif // Render_Base_Rectangle_With_Texture
+
+
+        
+        pICommandList->RSSetViewports(1, &stViewPort);
+        pICommandList->RSSetScissorRects(1, &stScissorRect);
+
+
+        // 通过资源屏障判定后缓冲已经切换完毕可以开始渲染了
+        stBeginResBarrier.Transition.pResource = pIARenderTargets[nFrameIndex].Get();
+        pICommandList->ResourceBarrier(1, &stBeginResBarrier);
+
+        CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(pIRTVHeap->GetCPUDescriptorHandleForHeapStart()
+            , nFrameIndex
+            , nRTVDescriptorSize);
+
+        //设置渲染目标
+        pICommandList->OMSetRenderTargets(1, &rtvHandle, FALSE, nullptr);
+        // 继续记录命令，并真正开始新一帧的渲染
+        const float clearColor[] = { 0.0f, 0.2f, 0.4f, 1.0f };
+        pICommandList->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
+        
+        pICommandList->IASetVertexBuffers(0, 1, &stVertexBufferView);
+        //Draw Call
+#ifdef Render_Base_Triangle
+        pICommandList->DrawInstanced(3, 1, 0, 0);
+#endif // Render_Base_Triangle
+
+#ifdef Render_Base_Rectangle_With_Texture
+        pICommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+        pICommandList->DrawInstanced(_countof(stTriangleVertices), 1, 0, 0);
+#endif // Render_Base_Rectangle_With_Texture
+
+#ifdef Render_Texture_Cube_With_Camera
+        pICommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+        pICommandList->IASetIndexBuffer(&stIndexBufferView);
+        pICommandList->DrawIndexedInstanced(_countof(pBoxIndices), 1, 0, 0, 0);
+#endif // Render_Texture_Cube_With_Camera
+
+        //又一个资源屏障，用于确定渲染已经结束可以提交画面去显示了
+        stEndResBarrier.Transition.pResource = pIARenderTargets[nFrameIndex].Get();
+        pICommandList->ResourceBarrier(1, &stEndResBarrier);
+        //关闭命令列表，可以去执行了
+        pICommandList->Close();
+        //执行命令列表
+        ID3D12CommandList* ppCommandLists[] = { pICommandList.Get() };
+        pICommandQueue->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
+
+        //提交画面
+        pISwapChain3->Present(1, 0);
+        //开始同步GPU与CPU的执行，先记录围栏标记值
+        const UINT64 fence = n64FenceValue;
+        pICommandQueue->Signal(pIFence.Get(), fence);
+        n64FenceValue++;
+
+        // 看命令有没有真正执行到围栏标记的这里，没有就利用事件去等待，注意使用的是命令队列对象的指针
+        if (pIFence->GetCompletedValue() < fence)
+        {
+            pIFence->SetEventOnCompletion(fence, hFenceEvent);
+            WaitForSingleObject(hFenceEvent, INFINITE);
+        }
+
+        //到这里说明一个命令队列完整的执行完了，在这里就代表我们的一帧已经渲染完了，接着准备执行下一帧//渲染
+        //获取新的后缓冲序号，因为Present真正完成时后缓冲的序号就更新了
+        nFrameIndex = pISwapChain3->GetCurrentBackBufferIndex();
+        //命令分配器先Reset一下
+        pICommandAllocator->Reset();
+        //Reset命令列表，并重新指定命令分配器和PSO对象
+        pICommandList->Reset(pICommandAllocator.Get(), pIPipelineState.Get());
+
+
+        nFrame++;
+        wstring str1 = L"第";
+        wstring str2 = to_wstring(nFrame);
+        wstring str3 = L"帧绘制完成\n";
+        wstring result = str1 + str2 + str3;
+        LPCWSTR frameInfo = result.c_str();
+        OutputDebugString(frameInfo);
+
 
     }
 
