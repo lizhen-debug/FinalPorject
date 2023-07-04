@@ -8,12 +8,17 @@ struct ST_GRS_FRAME_MVP_BUFFER
 	XMFLOAT4X4 m_MVP;//经典的Model-view-projection(MVP)矩阵
 };
 
+enum RenderMethod
+{
+	IndexedInstanced, Instanced
+};
+
 class Model
 {
 public:
 	Model();
 	Model(Engine engine);
-	void InitModel(XMFLOAT3 position, XMFLOAT3 rotation, XMFLOAT3 scale, Mesh used_mesh, Texture used_texture);
+	void InitModel(XMFLOAT3 position, XMFLOAT3 rotation, XMFLOAT3 scale, Mesh used_mesh, Texture used_texture, RenderMethod render_method, D3D_PRIMITIVE_TOPOLOGY toplogy);
 	void RenderModel(XMMATRIX MVP_matrix);
 	void RotationY(float rotation_angle);
 	~Model();
@@ -22,7 +27,8 @@ public:
 	XMFLOAT3 ModelPosition = {};
 	XMFLOAT3 ModelRotation = {};
 	XMFLOAT3 ModelScale = {};
-	
+	RenderMethod ModelRenderMethod = IndexedInstanced;
+	D3D_PRIMITIVE_TOPOLOGY ModelToplogy = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 
 private:
 	Engine GlobalEngine;
@@ -46,7 +52,7 @@ Model::Model(Engine engine)
 	GlobalEngine = engine;
 }
 
-inline void Model::InitModel(XMFLOAT3 position, XMFLOAT3 rotation, XMFLOAT3 scale, Mesh used_mesh, Texture used_texture)
+inline void Model::InitModel(XMFLOAT3 position, XMFLOAT3 rotation, XMFLOAT3 scale, Mesh used_mesh, Texture used_texture, RenderMethod render_method, D3D_PRIMITIVE_TOPOLOGY toplogy)
 {
 	ModelPosition = position;
 	ModelRotation = rotation;
@@ -58,6 +64,8 @@ inline void Model::InitModel(XMFLOAT3 position, XMFLOAT3 rotation, XMFLOAT3 scal
 
 	UsedMesh = used_mesh;
 	UsedTexture = used_texture;
+	ModelRenderMethod = render_method;
+	ModelToplogy = toplogy;
 
 	//堆属性设置为上传堆
 	D3D12_HEAP_PROPERTIES stHeapUpload = { D3D12_HEAP_TYPE_UPLOAD };
@@ -142,11 +150,21 @@ inline void Model::RenderModel(XMMATRIX MVP_matrix)
 		2,
 		hGPUSamplerHandle);
 
-    GlobalEngine.pICommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+    GlobalEngine.pICommandList->IASetPrimitiveTopology(ModelToplogy);
     GlobalEngine.pICommandList->IASetVertexBuffers(0, 1, &UsedMesh.stVertexBufferView);
 	GlobalEngine.pICommandList->IASetIndexBuffer(&UsedMesh.stIndexBufferView);
-    GlobalEngine.pICommandList->DrawIndexedInstanced(UsedMesh.nIndicesNum, 1, 0, 0, 0);
-	
+
+	switch (ModelRenderMethod)
+	{
+	case IndexedInstanced:
+		GlobalEngine.pICommandList->DrawIndexedInstanced(UsedMesh.nIndicesNum, 1, 0, 0, 0);
+		break;
+	case Instanced:
+		GlobalEngine.pICommandList->DrawInstanced(UsedMesh.nVerticesNum, 1, 0, 0);
+		break;
+	default:
+		break;
+	}
 }
 
 inline void Model::RotationY(float rotation_angle)

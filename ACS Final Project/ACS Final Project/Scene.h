@@ -44,7 +44,7 @@ inline void Scene::AppendTargetToRenderList(Model target)
 
 inline void Scene::ConstructScene()
 {
-	camera.InitCamera({ 0.0f, 5.0f, -15.0f, 0.0f }, { 0.0f, 0.0f, 0.0f, 0.0f }, { 0.0f, 1.0f, 0.0f, 0.0f });
+	camera.InitCamera({ 5.0f, 5.0f, -15.0f, 0.0f }, { 0.0f, 0.0f, 0.0f, 0.0f }, { 0.0f, 1.0f, 0.0f, 0.0f });
 
 	TCHAR MeshFileName[] = _T("None");
 	Mesh mesh(GlobalEngine);
@@ -54,15 +54,23 @@ inline void Scene::ConstructScene()
 	Texture tex(GlobalEngine);
 	tex.LoadTexture(TextureFileName);
 
-	Model model(GlobalEngine);
-	model.InitModel({ -2.5,0,0 }, { 0,0,0 }, { 1.2,1.2,1.2 }, mesh, tex);
+	Model model1(GlobalEngine);
+	model1.InitModel({ -2.5,0,0 }, { 0,0,0 }, { 1.2,1.2,1.2 }, mesh, tex, IndexedInstanced, D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 	Model model2(GlobalEngine);
-	model2.InitModel({ 2.5,0,0 }, { 0,0,0 }, { 0.8,0.8,0.8 }, mesh, tex);
+	model2.InitModel({ 2.5,0,0 }, { 0,0,0 }, { 0.8,0.8,0.8 }, mesh, tex, Instanced, D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-	AppendTargetToRenderList(model);
+	Mesh mesh_test(GlobalEngine);
+	mesh_test.LoadDefaultMesh();
+	Model model3(GlobalEngine);
+	model3.InitModel({ 0,0,0 }, { 0,0,0 }, { 100,100,100 }, mesh_test, tex, Instanced, D3D_PRIMITIVE_TOPOLOGY_LINELIST);
+	AppendTargetToRenderList(model3);
+
+
+	AppendTargetToRenderList(model1);
 	AppendTargetToRenderList(model2);
-
+	
+	
 }
 
 inline void Scene::RenderScene()

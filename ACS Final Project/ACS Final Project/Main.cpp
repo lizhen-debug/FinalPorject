@@ -137,22 +137,6 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
             break;
         }
 
-
-        n64tmCurrent = ::GetTickCount64();
-
-        //计算旋转的角度：旋转角度(弧度) = 时间(秒) * 角速度(弧度/秒)
-        //经典消息循环中的OnUpdate函数中需要做的事情
-        dModelRotationYAngle += ((n64tmCurrent - n64tmFrameStart) / 1000.0f) * fPalstance;
-
-        n64tmFrameStart = n64tmCurrent;
-
-        //旋转角度是2PI周期的倍数，去掉周期数，只留下相对0弧度开始的小于2PI的弧度即可
-        if (dModelRotationYAngle > XM_2PI)
-        {
-            dModelRotationYAngle = fmod(dModelRotationYAngle, XM_2PI);
-        }
-
-        scene.RenderList[0].RotationY(0.01);
         scene.RenderScene();
 
     }

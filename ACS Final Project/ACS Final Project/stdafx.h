@@ -31,5 +31,4 @@ using namespace DirectX;
 
 UINT nCurrentSamplerNO = 0; //当前使用的采样器索引
 UINT nSampleMaxCnt = 5;		//创建五个典型的采样器
-//物体旋转的角速度，单位：弧度/秒
-double fPalstance = 10.0f * XM_PI / 180.0f;
+
