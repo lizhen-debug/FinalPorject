@@ -373,7 +373,7 @@ inline void Texture::LoadTexture(TCHAR TexcuteFilePath[])
     //命令分配器先Reset一下，刚才已经执行过了一个复制纹理的命令
     GlobalEngine.pICommandAllocator->Reset();
     //Reset命令列表，并重新指定命令分配器和PSO对象
-    GlobalEngine.pICommandList->Reset(GlobalEngine.pICommandAllocator.Get(), GlobalEngine.pIPipelineState.Get());
+    GlobalEngine.pICommandList->Reset(GlobalEngine.pICommandAllocator.Get(), GlobalEngine.pIPipelineState1.Get());
 
     //---------------------------------------------------------------------------------------------
 

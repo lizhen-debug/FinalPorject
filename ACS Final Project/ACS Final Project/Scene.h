@@ -58,15 +58,15 @@ inline void Scene::ConstructScene()
 	model1.InitModel({ -2.5,0,0 }, { 0,0,0 }, { 1.2,1.2,1.2 }, mesh, tex, IndexedInstanced, D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 	Model model2(GlobalEngine);
-	model2.InitModel({ 2.5,0,0 }, { 0,0,0 }, { 0.8,0.8,0.8 }, mesh, tex, Instanced, D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	model2.InitModel({ 2.5,0,0 }, { 0,0,0 }, { 0.8,0.8,0.8 }, mesh, tex, IndexedInstanced, D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-	Mesh mesh_test(GlobalEngine);
-	mesh_test.LoadDefaultMesh();
-	Model model3(GlobalEngine);
-	model3.InitModel({ 0,0,0 }, { 0,0,0 }, { 100,100,100 }, mesh_test, tex, Instanced, D3D_PRIMITIVE_TOPOLOGY_LINELIST);
-	AppendTargetToRenderList(model3);
+	Mesh coordinate_axis(GlobalEngine);
+	coordinate_axis.LoadDefaultMesh();
+	Model axis(GlobalEngine);
+	axis.InitDefaultModel({ 0,0,0 }, { 0,0,0 }, { 100,100,100 }, coordinate_axis, Instanced, D3D_PRIMITIVE_TOPOLOGY_LINELIST);
 
 
+	AppendTargetToRenderList(axis);
 	AppendTargetToRenderList(model1);
 	AppendTargetToRenderList(model2);
 	
@@ -134,7 +134,7 @@ inline void Scene::RenderScene()
 	//命令分配器先Reset一下
 	GlobalEngine.pICommandAllocator->Reset();
 	//Reset命令列表，并重新指定命令分配器和PSO对象
-	GlobalEngine.pICommandList->Reset(GlobalEngine.pICommandAllocator.Get(), GlobalEngine.pIPipelineState.Get());
+	GlobalEngine.pICommandList->Reset(GlobalEngine.pICommandAllocator.Get(), GlobalEngine.pIPipelineState1.Get());
 
 
 	nFrame++;

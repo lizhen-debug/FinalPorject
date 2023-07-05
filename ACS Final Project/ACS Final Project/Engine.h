@@ -40,7 +40,8 @@ public:
     ComPtr<ID3D12DescriptorHeap>         pIRTVHeap;
     ComPtr<ID3D12DescriptorHeap>		 pISamplerDescriptorHeap;
     ComPtr<ID3D12RootSignature>          pIRootSignature;
-    ComPtr<ID3D12PipelineState>          pIPipelineState;
+    ComPtr<ID3D12PipelineState>          pIPipelineState1;
+    ComPtr<ID3D12PipelineState>          pIPipelineState2;
     ComPtr<ID3D12Fence>                  pIFence;
 
     D3D12_RESOURCE_BARRIER stBeginResBarrier = {};
@@ -125,7 +126,7 @@ Engine::Engine(HWND hwnd)
         0,
         D3D12_COMMAND_LIST_TYPE_DIRECT,
         pICommandAllocator.Get(),
-        pIPipelineState.Get(),
+        nullptr,
         IID_PPV_ARGS(&pICommandList));
 
     //创建控制CPU和GPU同步工作的同步对象 围栏
@@ -238,44 +239,78 @@ Engine::Engine(HWND hwnd)
     //---------------------------------------------------------------------------------------------
 
     //编译Shader
-    ComPtr<ID3DBlob> vertexShader;
-    ComPtr<ID3DBlob> pixelShader;
+    ComPtr<ID3DBlob> vertexShader1;
+    ComPtr<ID3DBlob> pixelShader1;
+
+    ComPtr<ID3DBlob> vertexShader2;
+    ComPtr<ID3DBlob> pixelShader2;
 
     UINT compileFlags = D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
 
-    TCHAR pszShaderFileName[] = _T("D:\\OneDrive - University of Exeter\\MSc Advanced Computer Science\\Code Dir\\ACS Final Project\\FinalPorject\\ACS Final Project\\ACS Final Project\\Shaders\\texture_cube.hlsl");
+    TCHAR pszShaderFileName1[] = _T("D:\\OneDrive - University of Exeter\\MSc Advanced Computer Science\\Code Dir\\ACS Final Project\\FinalPorject\\ACS Final Project\\ACS Final Project\\Shaders\\texture_cube.hlsl");
 
-    D3DCompileFromFile(pszShaderFileName, nullptr, nullptr, "VSMain", "vs_5_0", compileFlags, 0, &vertexShader, nullptr);
+    D3DCompileFromFile(pszShaderFileName1, nullptr, nullptr, "VSMain", "vs_5_0", compileFlags, 0, &vertexShader1, nullptr);
 
-    D3DCompileFromFile(pszShaderFileName, nullptr, nullptr, "PSMain", "ps_5_0", compileFlags, 0, &pixelShader, nullptr);
+    D3DCompileFromFile(pszShaderFileName1, nullptr, nullptr, "PSMain", "ps_5_0", compileFlags, 0, &pixelShader1, nullptr);
+
+    TCHAR pszShaderFileName2[] = _T("D:\\OneDrive - University of Exeter\\MSc Advanced Computer Science\\Code Dir\\ACS Final Project\\FinalPorject\\ACS Final Project\\ACS Final Project\\Shaders\\shaders.hlsl");
+
+    D3DCompileFromFile(pszShaderFileName2, nullptr, nullptr, "VSMain", "vs_5_0", compileFlags, 0, &vertexShader2, nullptr);
+
+    D3DCompileFromFile(pszShaderFileName2, nullptr, nullptr, "PSMain", "ps_5_0", compileFlags, 0, &pixelShader2, nullptr);
+
 
     //填充用于描述顶点输入布局的结构体
-    D3D12_INPUT_ELEMENT_DESC inputElementDescs[] =
+    D3D12_INPUT_ELEMENT_DESC inputElementDescs1[] =
     {
         { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
         { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
         { "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 20, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 }
     };
 
+    D3D12_INPUT_ELEMENT_DESC inputElementDescs2[] =
+    {
+        { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+        { "COLOR", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 }
+    };
+
     CD3DX12_RASTERIZER_DESC rasterizerDesc = {};//光栅化器描述结构体
     rasterizerDesc.FillMode = D3D12_FILL_MODE_SOLID;//设置填充模式\线框模式
     rasterizerDesc.CullMode = D3D12_CULL_MODE_BACK;//设置剔除模式
-    //创建渲染管线状态对象接口
-    D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
-    psoDesc.InputLayout = { inputElementDescs, _countof(inputElementDescs) };//_countof宏，方便获取静态数组元素个数
-    psoDesc.pRootSignature = pIRootSignature.Get();
-    psoDesc.VS = CD3DX12_SHADER_BYTECODE(vertexShader.Get());
-    psoDesc.PS = CD3DX12_SHADER_BYTECODE(pixelShader.Get());
-    psoDesc.RasterizerState = rasterizerDesc;
-    psoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
-    psoDesc.DepthStencilState.DepthEnable = FALSE;
-    psoDesc.DepthStencilState.StencilEnable = FALSE;
-    psoDesc.SampleMask = UINT_MAX;
-    psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-    psoDesc.NumRenderTargets = 1;
-    psoDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
-    psoDesc.SampleDesc.Count = 1;
-    pID3DDevice->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&pIPipelineState));
+
+    //创建渲染管线状态对象接口1
+    D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc1 = {};
+    psoDesc1.InputLayout = { inputElementDescs1, _countof(inputElementDescs1) };//_countof宏，方便获取静态数组元素个数
+    psoDesc1.pRootSignature = pIRootSignature.Get();
+    psoDesc1.VS = CD3DX12_SHADER_BYTECODE(vertexShader1.Get());
+    psoDesc1.PS = CD3DX12_SHADER_BYTECODE(pixelShader1.Get());
+    psoDesc1.RasterizerState = rasterizerDesc;
+    psoDesc1.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
+    psoDesc1.DepthStencilState.DepthEnable = FALSE;
+    psoDesc1.DepthStencilState.StencilEnable = FALSE;
+    psoDesc1.SampleMask = UINT_MAX;
+    psoDesc1.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+    psoDesc1.NumRenderTargets = 1;
+    psoDesc1.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
+    psoDesc1.SampleDesc.Count = 1;
+    pID3DDevice->CreateGraphicsPipelineState(&psoDesc1, IID_PPV_ARGS(&pIPipelineState1));
+
+    //创建渲染管线状态对象接口2
+    D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc2 = {};
+    psoDesc2.InputLayout = { inputElementDescs2, _countof(inputElementDescs2) };//_countof宏，方便获取静态数组元素个数
+    psoDesc2.pRootSignature = pIRootSignature.Get();
+    psoDesc2.VS = CD3DX12_SHADER_BYTECODE(vertexShader2.Get());
+    psoDesc2.PS = CD3DX12_SHADER_BYTECODE(pixelShader2.Get());
+    psoDesc2.RasterizerState = rasterizerDesc;
+    psoDesc2.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
+    psoDesc2.DepthStencilState.DepthEnable = FALSE;
+    psoDesc2.DepthStencilState.StencilEnable = FALSE;
+    psoDesc2.SampleMask = UINT_MAX;
+    psoDesc2.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+    psoDesc2.NumRenderTargets = 1;
+    psoDesc2.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
+    psoDesc2.SampleDesc.Count = 1;
+    pID3DDevice->CreateGraphicsPipelineState(&psoDesc2, IID_PPV_ARGS(&pIPipelineState2));
 
     //声明和填充采样器堆结构体
     D3D12_DESCRIPTOR_HEAP_DESC stSamplerHeapDesc = {};

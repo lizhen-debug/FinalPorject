@@ -19,6 +19,7 @@ public:
 	Model();
 	Model(Engine engine);
 	void InitModel(XMFLOAT3 position, XMFLOAT3 rotation, XMFLOAT3 scale, Mesh used_mesh, Texture used_texture, RenderMethod render_method, D3D_PRIMITIVE_TOPOLOGY toplogy);
+	void InitDefaultModel(XMFLOAT3 position, XMFLOAT3 rotation, XMFLOAT3 scale, Mesh used_mesh, RenderMethod render_method, D3D_PRIMITIVE_TOPOLOGY toplogy);
 	void RenderModel(XMMATRIX MVP_matrix);
 	void RotationY(float rotation_angle);
 	~Model();
@@ -83,7 +84,7 @@ inline void Model::InitModel(XMFLOAT3 position, XMFLOAT3 rotation, XMFLOAT3 scal
 	// Map 之后就不再Unmap了 直接复制数据进去 这样每帧都不用map-copy-unmap浪费时间了
 	pICBVUpload->Map(0, nullptr, reinterpret_cast<void**>(&pMVPBuffer));
 
-	//创建SRV堆 (Shader Resource View Heap) 纹理视图描述符和常量描述符堆
+	//创建SRV堆 (Shader Resource View Heap) 纹理视图描述符堆,和CBV(Const Buffer View Heap)常量描述符堆
 	//将纹理视图描述符和CBV描述符放在一个描述符堆上
 	D3D12_DESCRIPTOR_HEAP_DESC stSRVCBVHeapDesc = {};
 	stSRVCBVHeapDesc.NumDescriptors = 2;
@@ -119,10 +120,63 @@ inline void Model::InitModel(XMFLOAT3 position, XMFLOAT3 rotation, XMFLOAT3 scal
 
 }
 
+inline void Model::InitDefaultModel(XMFLOAT3 position, XMFLOAT3 rotation, XMFLOAT3 scale, Mesh used_mesh, RenderMethod render_method, D3D_PRIMITIVE_TOPOLOGY toplogy)
+{
+	ModelPosition = position;
+	ModelRotation = rotation;
+	ModelScale = scale;
+
+	ModelMatrix = XMMatrixTranslation(ModelPosition.x, ModelPosition.y, ModelPosition.z);
+	ModelMatrix = XMMatrixMultiply(ModelMatrix, XMMatrixRotationRollPitchYaw(ModelRotation.x, ModelRotation.y, ModelRotation.z));
+	ModelMatrix = XMMatrixMultiply(ModelMatrix, XMMatrixScaling(ModelScale.x, ModelScale.y, ModelScale.z));
+
+	UsedMesh = used_mesh;
+	ModelRenderMethod = render_method;
+	ModelToplogy = toplogy;
+
+	//堆属性设置为上传堆
+	D3D12_HEAP_PROPERTIES stHeapUpload = { D3D12_HEAP_TYPE_UPLOAD };
+
+	D3D12_RESOURCE_DESC stCBVUploadDesc = CD3DX12_RESOURCE_DESC::Buffer(szMVPBuffer);
+	//创建常量缓冲资源对象 注意缓冲尺寸设置为256边界对齐大小
+	GlobalEngine.pID3DDevice->CreateCommittedResource(
+		&stHeapUpload,
+		D3D12_HEAP_FLAG_NONE,
+		&stCBVUploadDesc,
+		D3D12_RESOURCE_STATE_GENERIC_READ,
+		nullptr,
+		IID_PPV_ARGS(&pICBVUpload));
+
+	// Map 之后就不再Unmap了 直接复制数据进去 这样每帧都不用map-copy-unmap浪费时间了
+	pICBVUpload->Map(0, nullptr, reinterpret_cast<void**>(&pMVPBuffer));
+
+	//创建SRV堆 (Shader Resource View Heap) 纹理视图描述符堆,和CBV(Const Buffer View Heap)常量描述符堆
+	//将纹理视图描述符和CBV描述符放在一个描述符堆上
+	D3D12_DESCRIPTOR_HEAP_DESC stSRVCBVHeapDesc = {};
+	stSRVCBVHeapDesc.NumDescriptors = 2;
+	stSRVCBVHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+	stSRVCBVHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+	GlobalEngine.pID3DDevice->CreateDescriptorHeap(
+		&stSRVCBVHeapDesc,
+		IID_PPV_ARGS(&pISRVCBVHeap));
+
+	//创建CBV描述符
+	D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc = {};
+	cbvDesc.BufferLocation = pICBVUpload->GetGPUVirtualAddress();
+	cbvDesc.SizeInBytes = static_cast<UINT>(szMVPBuffer);
+
+	CD3DX12_CPU_DESCRIPTOR_HANDLE cbvSrvHandle(
+		pISRVCBVHeap->GetCPUDescriptorHandleForHeapStart(),
+		1,
+		GlobalEngine.pID3DDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV));
+
+	GlobalEngine.pID3DDevice->CreateConstantBufferView(&cbvDesc, cbvSrvHandle);
+}
+
 inline void Model::RenderModel(XMMATRIX MVP_matrix)
 {
 	XMStoreFloat4x4(&pMVPBuffer->m_MVP, MVP_matrix);
-
+	
 	//设置描述符堆
 	ID3D12DescriptorHeap* ppHeaps[] = { pISRVCBVHeap.Get(),GlobalEngine.pISamplerDescriptorHeap.Get() };
 	GlobalEngine.pICommandList->SetDescriptorHeaps(_countof(ppHeaps), ppHeaps);
@@ -149,7 +203,7 @@ inline void Model::RenderModel(XMMATRIX MVP_matrix)
 	GlobalEngine.pICommandList->SetGraphicsRootDescriptorTable(
 		2,
 		hGPUSamplerHandle);
-
+	
     GlobalEngine.pICommandList->IASetPrimitiveTopology(ModelToplogy);
     GlobalEngine.pICommandList->IASetVertexBuffers(0, 1, &UsedMesh.stVertexBufferView);
 	GlobalEngine.pICommandList->IASetIndexBuffer(&UsedMesh.stIndexBufferView);
@@ -157,9 +211,11 @@ inline void Model::RenderModel(XMMATRIX MVP_matrix)
 	switch (ModelRenderMethod)
 	{
 	case IndexedInstanced:
+		GlobalEngine.pICommandList->SetPipelineState(GlobalEngine.pIPipelineState1.Get());
 		GlobalEngine.pICommandList->DrawIndexedInstanced(UsedMesh.nIndicesNum, 1, 0, 0, 0);
 		break;
 	case Instanced:
+		GlobalEngine.pICommandList->SetPipelineState(GlobalEngine.pIPipelineState2.Get());
 		GlobalEngine.pICommandList->DrawInstanced(UsedMesh.nVerticesNum, 1, 0, 0);
 		break;
 	default:

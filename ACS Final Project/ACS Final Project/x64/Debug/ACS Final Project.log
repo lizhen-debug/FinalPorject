@@ -1,6 +1,6 @@
 ﻿  Main.cpp
-D:\OneDrive - University of Exeter\MSc Advanced Computer Science\Code Dir\ACS Final Project\FinalPorject\ACS Final Project\ACS Final Project\Engine.h(71,24): warning C4244: “=”: 从“UINT”转换到“FLOAT”，可能丢失数据
-D:\OneDrive - University of Exeter\MSc Advanced Computer Science\Code Dir\ACS Final Project\FinalPorject\ACS Final Project\ACS Final Project\Engine.h(72,25): warning C4244: “=”: 从“UINT”转换到“FLOAT”，可能丢失数据
+D:\OneDrive - University of Exeter\MSc Advanced Computer Science\Code Dir\ACS Final Project\FinalPorject\ACS Final Project\ACS Final Project\Engine.h(72,24): warning C4244: “=”: 从“UINT”转换到“FLOAT”，可能丢失数据
+D:\OneDrive - University of Exeter\MSc Advanced Computer Science\Code Dir\ACS Final Project\FinalPorject\ACS Final Project\ACS Final Project\Engine.h(73,25): warning C4244: “=”: 从“UINT”转换到“FLOAT”，可能丢失数据
 D:\OneDrive - University of Exeter\MSc Advanced Computer Science\Code Dir\ACS Final Project\FinalPorject\ACS Final Project\ACS Final Project\Scene.h(58,125): warning C4305: “参数”: 从“double”到“float”截断
-D:\OneDrive - University of Exeter\MSc Advanced Computer Science\Code Dir\ACS Final Project\FinalPorject\ACS Final Project\ACS Final Project\Scene.h(61,117): warning C4305: “参数”: 从“double”到“float”截断
+D:\OneDrive - University of Exeter\MSc Advanced Computer Science\Code Dir\ACS Final Project\FinalPorject\ACS Final Project\ACS Final Project\Scene.h(61,124): warning C4305: “参数”: 从“double”到“float”截断
   ACS Final Project.vcxproj -> D:\OneDrive - University of Exeter\MSc Advanced Computer Science\Code Dir\ACS Final Project\FinalPorject\ACS Final Project\x64\Debug\ACS Final Project.exe

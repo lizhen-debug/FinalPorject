@@ -9,6 +9,12 @@ struct ST_GRS_VERTEX
     XMFLOAT3 Normal;//顶点法线信息，float[3]
 };
 
+struct DefaultMeshVertex
+{
+    XMFLOAT3 Position;
+    XMFLOAT3 Color;
+};
+
 class Mesh
 {
 public:
@@ -109,6 +115,7 @@ inline void Mesh::LoadMesh(TCHAR MeshFilePath[])
     };
 
     const UINT nIndexBufferSize = sizeof(pBoxIndices);
+
     nIndicesNum = _countof(pBoxIndices);
     nVerticesNum = _countof(stCubeVertices);
     //填充资源结构体及创建提交资源对象
@@ -161,22 +168,20 @@ inline void Mesh::LoadMesh(TCHAR MeshFilePath[])
 
 inline void Mesh::LoadDefaultMesh()
 {
-    float fTCMax = 1.0f;
-    //定义正方体的3D数据结构，注意此处的纹理坐标故意设置为大于1
-    ST_GRS_VERTEX stCubeVertices[] = {
-        { {-1.0f,  0.0f, 0.0f}, {0.0f * fTCMax, 0.0f * fTCMax}, {1.0f,  0.0f, 0.0f} },
-        { {1.0f,  0.0f, 0.0f}, {1.0f * fTCMax, 0.0f * fTCMax},  {1.0f,  0.0f, 0.0f} },
+    DefaultMeshVertex coordinate_axis[] = {
+        { {-1.0f, 0.0f, 0.0f}, {1.0f, 0.0f, 0.0f} },//X轴，红色
+        { {1.0f, 0.0f, 0.0f}, {1.0f, 0.0f, 0.0f} }, //X轴，红色
 
-        { {0.0f, -1.0f, 0.0f}, {0.0f * fTCMax, 1.0f * fTCMax}, {0.0f,  1.0f, 0.0f} },
-        { {0.0f, 1.0f, 0.0f}, {0.0f * fTCMax, 1.0f * fTCMax}, {0.0f,  1.0f, 0.0f} },
+        { {0.0f, -1.0f, 0.0f}, {0.0f, 1.0f, 0.0f} },//Y轴，蓝色
+        { {0.0f, 1.0f, 0.0f}, {0.0f, 1.0f, 0.0f} }, //Y轴，蓝色
 
-        { {0.0f,  0.0f, -1.0f}, {1.0f * fTCMax, 0.0f * fTCMax},  {0.0f, 0.0f, 1.0f} },
-        { {0.0f , 0.0f, 1.0f}, {1.0f * fTCMax, 1.0f * fTCMax},  {0.0f,  0.0f, 1.0f} },
+        { {0.0f, 0.0f, -1.0f}, {0.0f, 0.0f, 1.0f} },//Z轴，绿色
+        { {0.0f, 0.0f, 1.0f}, {0.0f, 0.0f, 1.0f} }  //Z轴，绿色
     };
 
-    const UINT nVertexBufferSize = sizeof(stCubeVertices);
+    const UINT nVertexBufferSize = sizeof(coordinate_axis);
 
-    nVerticesNum = _countof(stCubeVertices);
+    nVerticesNum = _countof(coordinate_axis);
 
     //填充资源结构体及创建提交资源对象
     //堆属性设置为上传堆
@@ -195,12 +200,12 @@ inline void Mesh::LoadDefaultMesh()
     UINT8* pVertexDataBegin = nullptr;
     CD3DX12_RANGE readRange(0, 0);
     pIVertexBuffer->Map(0, &readRange, reinterpret_cast<void**>(&pVertexDataBegin));
-    memcpy(pVertexDataBegin, stCubeVertices, nVertexBufferSize);
+    memcpy(pVertexDataBegin, coordinate_axis, nVertexBufferSize);
     pIVertexBuffer->Unmap(0, nullptr);
 
     //填充顶点buffer视图的结构体，告诉GPU被描述的资源实际是Vertex Buffer
     stVertexBufferView.BufferLocation = pIVertexBuffer->GetGPUVirtualAddress();
-    stVertexBufferView.StrideInBytes = sizeof(ST_GRS_VERTEX);
+    stVertexBufferView.StrideInBytes = sizeof(DefaultMeshVertex);
     stVertexBufferView.SizeInBytes = nVertexBufferSize;
 }
 
