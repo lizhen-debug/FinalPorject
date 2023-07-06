@@ -44,9 +44,9 @@ inline void Scene::AppendTargetToRenderList(Model target)
 
 inline void Scene::ConstructScene()
 {
-	camera.InitCamera({ 5.0f, 5.0f, -15.0f, 0.0f }, { 0.0f, 0.0f, 0.0f, 0.0f }, { 0.0f, 1.0f, 0.0f, 0.0f });
+	camera.InitCamera({ 1.0f, 3.0f, -8.0f, 0.0f }, { 0.0f, 0.0f, 0.0f, 0.0f }, { 0.0f, 1.0f, 0.0f, 0.0f });
 
-	TCHAR MeshFileName[] = _T("None");
+	TCHAR MeshFileName[] = _T("D:\\OneDrive - University of Exeter\\MSc Advanced Computer Science\\Code Dir\\ACS Final Project\\FinalPorject\\ACS Final Project\\ACS Final Project\\Models\\");
 	Mesh mesh(GlobalEngine);
 	mesh.LoadMesh(MeshFileName);
 
@@ -55,10 +55,8 @@ inline void Scene::ConstructScene()
 	tex.LoadTexture(TextureFileName);
 
 	Model model1(GlobalEngine);
-	model1.InitModel({ -2.5,0,0 }, { 0,0,0 }, { 1.2,1.2,1.2 }, mesh, tex, IndexedInstanced, D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	model1.InitModel({ 0,0,0 }, { 0,0,0 }, { 1,1,1 }, mesh, tex, IndexedInstanced, D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-	Model model2(GlobalEngine);
-	model2.InitModel({ 2.5,0,0 }, { 0,0,0 }, { 0.8,0.8,0.8 }, mesh, tex, IndexedInstanced, D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 	Mesh coordinate_axis(GlobalEngine);
 	coordinate_axis.LoadDefaultMesh();
@@ -68,7 +66,7 @@ inline void Scene::ConstructScene()
 
 	AppendTargetToRenderList(axis);
 	AppendTargetToRenderList(model1);
-	AppendTargetToRenderList(model2);
+	
 	
 	
 }
@@ -88,12 +86,14 @@ inline void Scene::RenderScene()
 		, GlobalEngine.nFrameIndex
 		, GlobalEngine.nRTVDescriptorSize);
 
+	CD3DX12_CPU_DESCRIPTOR_HANDLE dsvHandle(GlobalEngine.pIDSVHeap->GetCPUDescriptorHandleForHeapStart());
+
 	//设置渲染目标
-	GlobalEngine.pICommandList->OMSetRenderTargets(1, &rtvHandle, FALSE, nullptr);
+	GlobalEngine.pICommandList->OMSetRenderTargets(1, &rtvHandle, FALSE, &dsvHandle);
 	// 继续记录命令，并真正开始新一帧的渲染
 	const float clearColor[] = { 0.42f, 0.42f, 0.42f, 1.0f };
 	GlobalEngine.pICommandList->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
-
+	GlobalEngine.pICommandList->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
 	camera.UpdateCamera();
 	for (int i = 0; i < RenderList.size(); i++)
 	{

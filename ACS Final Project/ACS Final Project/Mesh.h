@@ -1,7 +1,7 @@
 #pragma once
 
 //定义顶点结构体
-struct ST_GRS_VERTEX
+struct ModelMeshVertex
 {
     //顶点结构体额外加入了每个顶点的法线信息，但Shader中还暂时没有用
     XMFLOAT3 Position;//顶点位置信息，float[3]
@@ -49,10 +49,10 @@ Mesh::Mesh(Engine engine)
 inline void Mesh::LoadMesh(TCHAR MeshFilePath[])
 {
     
-    float fBoxSize = 2.0f;
+    float fBoxSize = 1.0f;
     float fTCMax = 2.0f;
-    //定义正方体的3D数据结构，注意此处的纹理坐标故意设置为大于1
-    ST_GRS_VERTEX stCubeVertices[] = {
+
+    vector<ModelMeshVertex> mesh_vertex = {
         { {-1.0f * fBoxSize,  1.0f * fBoxSize, -1.0f * fBoxSize}, {0.0f * fTCMax, 0.0f * fTCMax}, {0.0f,  0.0f, -1.0f} },
         { {1.0f * fBoxSize,  1.0f * fBoxSize, -1.0f * fBoxSize}, {1.0f * fTCMax, 0.0f * fTCMax},  {0.0f,  0.0f, -1.0f} },
         { {-1.0f * fBoxSize, -1.0f * fBoxSize, -1.0f * fBoxSize}, {0.0f * fTCMax, 1.0f * fTCMax}, {0.0f,  0.0f, -1.0f} },
@@ -90,11 +90,7 @@ inline void Mesh::LoadMesh(TCHAR MeshFilePath[])
         { {1.0f * fBoxSize, -1.0f * fBoxSize, -1.0f * fBoxSize}, {1.0f * fTCMax, 0.0f * fTCMax},  {0.0f, -1.0f,  0.0f} },
         { {1.0f * fBoxSize, -1.0f * fBoxSize,  1.0f * fBoxSize}, {1.0f * fTCMax, 1.0f * fTCMax},  {0.0f, -1.0f,  0.0f} },
     };
-
-    const UINT nVertexBufferSize = sizeof(stCubeVertices);
-
-    UINT32 pBoxIndices[] //立方体索引数组
-        = {
+    vector<int> mesh_index = {
         0,1,2,
         3,4,5,
 
@@ -113,11 +109,66 @@ inline void Mesh::LoadMesh(TCHAR MeshFilePath[])
         30,31,32,
         33,34,35,
     };
+    
+    ifstream file(MeshFilePath);
+    if (file.is_open())
+    {
+        mesh_vertex.clear();
+        mesh_index.clear();
 
-    const UINT nIndexBufferSize = sizeof(pBoxIndices);
+        int vt_no = 0;
+        int vn_no = 0;
 
-    nIndicesNum = _countof(pBoxIndices);
-    nVerticesNum = _countof(stCubeVertices);
+        string line;
+        while (getline(file, line))
+        {
+            istringstream iss(line);
+            string prefix;
+
+            iss >> prefix;
+
+            if (prefix == "v") // 顶点信息
+            {
+                ModelMeshVertex vertex = {};
+                iss >> vertex.Position.x >> vertex.Position.y >> vertex.Position.z;
+                mesh_vertex.push_back(vertex);
+            }
+            else if (prefix == "vt") // 纹理坐标信息
+            {
+                iss >> mesh_vertex[vt_no].TextureCoordinate.x >> mesh_vertex[vt_no].TextureCoordinate.y;
+                vt_no++;
+            }
+            else if (prefix == "vn") // 法线信息
+            {
+                iss >> mesh_vertex[vn_no].Normal.x >> mesh_vertex[vn_no].Normal.y >> mesh_vertex[vn_no].Normal.z;
+                vn_no++;
+            }
+            else if (prefix == "f") // 面信息
+            {
+               
+                string faceIndices;
+                
+                // 提取顶点索引部分
+                while (iss >> faceIndices)
+                {
+                    istringstream indices(faceIndices);
+                    string indexToken;
+                    getline(indices, indexToken, '/');
+                    int index = stoi(indexToken);
+                    mesh_index.push_back(index);
+                }
+
+            }
+        }
+        file.close();
+    }
+
+    const UINT nVertexBufferSize = sizeof(mesh_vertex) * mesh_vertex.size();
+
+    const UINT nIndexBufferSize = sizeof(int) * mesh_index.size();
+
+    nIndicesNum = mesh_index.size();
+    nVerticesNum = mesh_vertex.size();
     //填充资源结构体及创建提交资源对象
     //堆属性设置为上传堆
     D3D12_HEAP_PROPERTIES stHeapUpload = { D3D12_HEAP_TYPE_UPLOAD };//Upload的概念就是从CPU内存上传到显存中的意思
@@ -135,12 +186,12 @@ inline void Mesh::LoadMesh(TCHAR MeshFilePath[])
     UINT8* pVertexDataBegin = nullptr;
     CD3DX12_RANGE readRange(0, 0);
     pIVertexBuffer->Map(0, &readRange, reinterpret_cast<void**>(&pVertexDataBegin));
-    memcpy(pVertexDataBegin, stCubeVertices, nVertexBufferSize);
+    memcpy(pVertexDataBegin, &mesh_vertex[0], nVertexBufferSize);
     pIVertexBuffer->Unmap(0, nullptr);
 
     //填充顶点buffer视图的结构体，告诉GPU被描述的资源实际是Vertex Buffer
     stVertexBufferView.BufferLocation = pIVertexBuffer->GetGPUVirtualAddress();
-    stVertexBufferView.StrideInBytes = sizeof(ST_GRS_VERTEX);
+    stVertexBufferView.StrideInBytes = sizeof(ModelMeshVertex);
     stVertexBufferView.SizeInBytes = nVertexBufferSize;
 
     //创建索引缓冲
@@ -156,7 +207,7 @@ inline void Mesh::LoadMesh(TCHAR MeshFilePath[])
     //上述核心即为得到要绘制的顶点索引buffer，用于下面将绘制数据从CPU内存向显存进行传递
     UINT8* pIndexDataBegin = nullptr;
     pIIndexBuffer->Map(0, &readRange, reinterpret_cast<void**>(&pIndexDataBegin));
-    memcpy(pIndexDataBegin, pBoxIndices, nIndexBufferSize);
+    memcpy(pIndexDataBegin, &mesh_index[0], nIndexBufferSize);
     pIIndexBuffer->Unmap(0, nullptr);
 
     //填充顶点buffer视图的结构体，告诉GPU被描述的资源是Index Buffer

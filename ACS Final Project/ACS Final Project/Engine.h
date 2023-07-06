@@ -38,11 +38,13 @@ public:
     ComPtr<IDXGISwapChain3>              pISwapChain3;
     ComPtr<ID3D12Resource>*              pIARenderTargets;
     ComPtr<ID3D12DescriptorHeap>         pIRTVHeap;
+    ComPtr<ID3D12DescriptorHeap>		 pIDSVHeap;
     ComPtr<ID3D12DescriptorHeap>		 pISamplerDescriptorHeap;
     ComPtr<ID3D12RootSignature>          pIRootSignature;
     ComPtr<ID3D12PipelineState>          pIPipelineState1;
     ComPtr<ID3D12PipelineState>          pIPipelineState2;
     ComPtr<ID3D12Fence>                  pIFence;
+    ComPtr<ID3D12Resource>				 pIDepthStencilBuffer;
 
     D3D12_RESOURCE_BARRIER stBeginResBarrier = {};
     D3D12_RESOURCE_BARRIER stEndResBarrier = {};
@@ -190,6 +192,43 @@ Engine::Engine(HWND hwnd)
         pID3DDevice->CreateRenderTargetView(pIARenderTargets[i].Get(), nullptr, rtvHandle);
         rtvHandle.Offset(1, nRTVDescriptorSize);//迭代器offset
     }
+
+    //创建深度缓冲及深度缓冲描述符堆
+    D3D12_CLEAR_VALUE stDepthOptimizedClearValue = {};
+    stDepthOptimizedClearValue.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+    stDepthOptimizedClearValue.DepthStencil.Depth = 1.0f;
+    stDepthOptimizedClearValue.DepthStencil.Stencil = 0;
+
+
+    CD3DX12_HEAP_PROPERTIES heapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
+    CD3DX12_RESOURCE_DESC tex2D = CD3DX12_RESOURCE_DESC::Tex2D(DXGI_FORMAT_D24_UNORM_S8_UINT, iWidth, iHeight, 1, 0, 1, 0, D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL);
+
+    //使用隐式默认堆创建一个深度蜡板缓冲区，
+    //因为基本上深度缓冲区会一直被使用，重用的意义不大，所以直接使用隐式堆，图方便
+    pID3DDevice->CreateCommittedResource(
+        &heapProperties
+        , D3D12_HEAP_FLAG_NONE
+        , &tex2D
+        , D3D12_RESOURCE_STATE_DEPTH_WRITE
+        , &stDepthOptimizedClearValue
+        , IID_PPV_ARGS(&pIDepthStencilBuffer)
+    );
+
+    D3D12_DEPTH_STENCIL_VIEW_DESC stDepthStencilDesc = {};
+    stDepthStencilDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+    stDepthStencilDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
+    stDepthStencilDesc.Flags = D3D12_DSV_FLAG_NONE;
+
+    D3D12_DESCRIPTOR_HEAP_DESC dsvHeapDesc = {};
+    dsvHeapDesc.NumDescriptors = 1;
+    dsvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
+    dsvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+    pID3DDevice->CreateDescriptorHeap(&dsvHeapDesc, IID_PPV_ARGS(&pIDSVHeap));
+
+    pID3DDevice->CreateDepthStencilView(pIDepthStencilBuffer.Get()
+        , &stDepthStencilDesc
+        , pIDSVHeap->GetCPUDescriptorHandleForHeapStart());
+ 
     //----------------------------------------------------------------------------------
     //根签名的创建
     //创建根描述符
@@ -286,8 +325,10 @@ Engine::Engine(HWND hwnd)
     psoDesc1.PS = CD3DX12_SHADER_BYTECODE(pixelShader1.Get());
     psoDesc1.RasterizerState = rasterizerDesc;
     psoDesc1.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
-    psoDesc1.DepthStencilState.DepthEnable = FALSE;
     psoDesc1.DepthStencilState.StencilEnable = FALSE;
+    psoDesc1.DepthStencilState.DepthEnable = TRUE;			//打开深度缓冲				
+    psoDesc1.DepthStencilState.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ALL;//启用深度缓存写入功能
+    psoDesc1.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_LESS;     //深度测试函数（该值为普通的深度测试，即较小值写入）
     psoDesc1.SampleMask = UINT_MAX;
     psoDesc1.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
     psoDesc1.NumRenderTargets = 1;
@@ -303,8 +344,10 @@ Engine::Engine(HWND hwnd)
     psoDesc2.PS = CD3DX12_SHADER_BYTECODE(pixelShader2.Get());
     psoDesc2.RasterizerState = rasterizerDesc;
     psoDesc2.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
-    psoDesc2.DepthStencilState.DepthEnable = FALSE;
     psoDesc2.DepthStencilState.StencilEnable = FALSE;
+    psoDesc2.DepthStencilState.DepthEnable = TRUE;			
+    psoDesc2.DepthStencilState.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ALL;
+    psoDesc2.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_LESS;
     psoDesc2.SampleMask = UINT_MAX;
     psoDesc2.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
     psoDesc2.NumRenderTargets = 1;

@@ -7,6 +7,8 @@
 #include <tchar.h>
 #include <wrl.h>
 #include <vector>
+#include <fstream>
+#include <sstream>
 
 
 #include <d3d12.h>

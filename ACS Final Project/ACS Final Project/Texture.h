@@ -132,6 +132,8 @@ public:
 	~Texture();
     
     ComPtr<ID3D12Resource>				 pITexture;
+    UINT nTextureW = 0u;//纹理宽度
+    UINT nTextureH = 0u;//纹理高度
 
 private:
 	Engine GlobalEngine;
@@ -141,8 +143,7 @@ private:
     ComPtr<IWICBitmapFrameDecode>		 pIWICFrame;
     ComPtr<IWICBitmapSource>			 pIBMP;
 
-    UINT nTextureW = 0u;//纹理宽度
-    UINT nTextureH = 0u;//纹理高度
+    
     UINT nBPP = 0u;//纹理每个像素所占的位数
     UINT nPicRowPitch = 0;//纹理实际的行大小（单位：字节）
     UINT64 n64UploadBufferSize = 0;//上传堆缓冲大小
