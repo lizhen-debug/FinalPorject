@@ -48,6 +48,55 @@ Mesh::Mesh(Engine engine)
 
 inline void Mesh::LoadMesh(TCHAR MeshFilePath[])
 {
+    const char* modelFilename = "D:\\OneDrive - University of Exeter\\MSc Advanced Computer Science\\Code Dir\\ACS Final Project\\FinalPorject\\ACS Final Project\\ACS Final Project\\Models\\kuroro.obj";
+    assert(modelFilename != nullptr);
+    const std::string filePath(modelFilename);
+
+    Assimp::Importer importer;
+    const std::uint32_t flags{ aiProcessPreset_TargetRealtime_Fast | aiProcess_ConvertToLeftHanded };
+    const aiScene* scene{ importer.ReadFile(filePath.c_str(), flags) };
+    assert(scene != nullptr);
+
+    assert(scene->HasMeshes());
+
+    vector<ModelMeshVertex> mesh_vertex;
+    vector<int> mesh_index;
+
+    for (std::uint32_t i = 0U; i < scene->mNumMeshes; ++i)
+    {
+        aiMesh* mesh{ scene->mMeshes[i] };
+        assert(mesh != nullptr);
+
+        {
+            // Positions
+            const std::size_t numVertices{ mesh->mNumVertices };
+            assert(numVertices > 0U);
+            mesh_vertex.resize(numVertices);
+            for (std::uint32_t i = 0U; i < numVertices; ++i)
+            {
+                mesh_vertex[i].Position = XMFLOAT3(reinterpret_cast<const float*>(&mesh->mVertices[i]));
+                mesh_vertex[i].TextureCoordinate = XMFLOAT2(reinterpret_cast<const float*>(&mesh->mTextureCoords[0][i]));
+                mesh_vertex[i].Normal= XMFLOAT3(reinterpret_cast<const float*>(&mesh->mNormals[i]));
+            }
+
+            // Indices
+            const std::uint32_t numFaces{ mesh->mNumFaces };
+            assert(numFaces > 0U);
+            for (std::uint32_t i = 0U; i < numFaces; ++i)
+            {
+                const aiFace* face = &mesh->mFaces[i];
+                assert(face != nullptr);
+                
+                assert(face->mNumIndices == 3U);
+
+                mesh_index.push_back(face->mIndices[0U]);
+                mesh_index.push_back(face->mIndices[1U]);
+                mesh_index.push_back(face->mIndices[2U]);
+            }
+        }
+    }
+
+    /*
     
     float fBoxSize = 1.0f;
     float fTCMax = 2.0f;
@@ -110,6 +159,7 @@ inline void Mesh::LoadMesh(TCHAR MeshFilePath[])
         33,34,35,
     };
     
+
     ifstream file(MeshFilePath);
     if (file.is_open())
     {
@@ -143,26 +193,11 @@ inline void Mesh::LoadMesh(TCHAR MeshFilePath[])
                 iss >> mesh_vertex[vn_no].Normal.x >> mesh_vertex[vn_no].Normal.y >> mesh_vertex[vn_no].Normal.z;
                 vn_no++;
             }
-            else if (prefix == "f") // 面信息
-            {
-               
-                string faceIndices;
-                
-                // 提取顶点索引部分
-                while (iss >> faceIndices)
-                {
-                    istringstream indices(faceIndices);
-                    string indexToken;
-                    getline(indices, indexToken, '/');
-                    int index = stoi(indexToken);
-                    mesh_index.push_back(index);
-                }
-
-            }
         }
         file.close();
     }
 
+    */
     const UINT nVertexBufferSize = sizeof(mesh_vertex) * mesh_vertex.size();
 
     const UINT nIndexBufferSize = sizeof(int) * mesh_index.size();

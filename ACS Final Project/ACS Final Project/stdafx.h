@@ -1,4 +1,5 @@
 #pragma once
+#define NOMINMAX
 
 #include <windows.h>
 #include <WindowsX.h>
@@ -18,10 +19,18 @@
 #include "d3dx12.h"
 #include <dxgidebug.h>
 
+
 using namespace Microsoft;
 using namespace Microsoft::WRL;
 using namespace std;
 using namespace DirectX;
+
+
+#include <assimp/Importer.hpp>
+#include <assimp/scene.h>
+#include <assimp/postprocess.h>
+
+
 
 
 //向上取整除法

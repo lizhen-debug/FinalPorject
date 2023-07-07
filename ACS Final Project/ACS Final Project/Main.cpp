@@ -136,7 +136,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
         default:
             break;
         }
-        scene.RenderList[1].RotationY(0.01);
+        scene.RenderList[1].RotationY(0.004);
         scene.RenderScene();
 
     }

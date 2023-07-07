@@ -44,18 +44,18 @@ inline void Scene::AppendTargetToRenderList(Model target)
 
 inline void Scene::ConstructScene()
 {
-	camera.InitCamera({ 1.0f, 3.0f, -8.0f, 0.0f }, { 0.0f, 0.0f, 0.0f, 0.0f }, { 0.0f, 1.0f, 0.0f, 0.0f });
+	camera.InitCamera({ 1.0f, 3.0f, -7.0f, 0.0f }, { 0.0f, 1.0f, 0.0f, 0.0f }, { 0.0f, 1.0f, 0.0f, 0.0f });
 
-	TCHAR MeshFileName[] = _T("D:\\OneDrive - University of Exeter\\MSc Advanced Computer Science\\Code Dir\\ACS Final Project\\FinalPorject\\ACS Final Project\\ACS Final Project\\Models\\");
+	TCHAR MeshFileName[] = _T(" ");
 	Mesh mesh(GlobalEngine);
 	mesh.LoadMesh(MeshFileName);
 
-	TCHAR TextureFileName[] = _T("D:\\OneDrive - University of Exeter\\MSc Advanced Computer Science\\Code Dir\\ACS Final Project\\FinalPorject\\ACS Final Project\\ACS Final Project\\Textures\\test1.jpg");
+	TCHAR TextureFileName[] = _T("D:\\OneDrive - University of Exeter\\MSc Advanced Computer Science\\Code Dir\\ACS Final Project\\FinalPorject\\ACS Final Project\\ACS Final Project\\Models\\Kuroro_UV\\diffuse.png");
 	Texture tex(GlobalEngine);
 	tex.LoadTexture(TextureFileName);
 
 	Model model1(GlobalEngine);
-	model1.InitModel({ 0,0,0 }, { 0,0,0 }, { 1,1,1 }, mesh, tex, IndexedInstanced, D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	model1.InitModel({ 0,0,0 }, { 0,0,0 }, { 0.06,0.06,0.06 }, mesh, tex, IndexedInstanced, D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 
 	Mesh coordinate_axis(GlobalEngine);
