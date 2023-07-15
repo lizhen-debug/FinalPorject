@@ -23,7 +23,7 @@ inline void Light::InitLight()
 {
 	lightColor = { 1, 1, 1 };
 	lightPosition = { 100, 100, -100 };
-	lightDirection = { 0,1,-1 };
+	lightDirection = { 0,0.2,-1 };
 }
 
 inline void Light::UpdateLight()

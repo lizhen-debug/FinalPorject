@@ -37,20 +37,19 @@ PSInput VSMain(float4 position : POSITION, float4 uv : TEXCOORD, float4 normal :
 float4 PSMain(PSInput input) : SV_TARGET
 {
 	float4 color = g_texture.Sample(g_sampler, input.uv);
-   
-	float ambient = 0.5f;
-	float f_SpecularPower = 32;
 
+	float ambient = 0.3f;
+	float f_SpecularPower = 0.5;
+	
     float4 norm = normalize(input.normal);
     float4 lightDir = normalize(f_LightDirection);
     float diffuse = saturate(dot(norm, lightDir));
-	
-	float specularStrength = 0.5;
+
 	float4 viewDir = normalize(f_ViewPosition - input.worldPosition);
-	float4 reflectDir = reflect(-lightDir, norm);
-	float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32);
-
-	float4 result = (ambient + diffuse + spec) * color;
-
-    return result;
+	
+	float spec = pow(saturate(dot(normalize(2 * saturate(dot(input.normal, -lightDir)) * input.normal + lightDir), viewDir)), 100);
+	
+	float4 result = (ambient + diffuse + f_SpecularPower * spec) * color;
+	
+	return result;
 }
