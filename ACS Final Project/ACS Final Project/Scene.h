@@ -1,6 +1,7 @@
 #pragma once
 #include "Model.h"
 #include "Camera.h"
+#include "Light.h"
 
 class Scene
 {
@@ -12,6 +13,7 @@ public:
 	~Scene();
 
 	Camera camera;
+	Light light;
 	vector<Model> RenderList = {};
 
 private:
@@ -44,9 +46,10 @@ inline void Scene::AppendTargetToRenderList(Model target)
 
 inline void Scene::ConstructScene()
 {
-	camera.InitCamera({ 1.0f, 3.0f, -7.0f, 0.0f }, { 0.0f, 1.0f, 0.0f, 0.0f }, { 0.0f, 1.0f, 0.0f, 0.0f });
+	camera.InitCamera(GlobalEngine, { 0.0f, 50.0f, -100.0f, 0.0f }, { 0.0f, 0.0f, 0.0f, 0.0f }, { 0.0f, 1.0f, 0.0f, 0.0f });
+	light.InitLight();
 
-	TCHAR MeshFileName[] = _T(" ");
+	const char* MeshFileName = "D:\\OneDrive - University of Exeter\\MSc Advanced Computer Science\\Code Dir\\ACS Final Project\\FinalPorject\\ACS Final Project\\ACS Final Project\\Models\\kuroro.obj";
 	Mesh mesh(GlobalEngine);
 	mesh.LoadMesh(MeshFileName);
 
@@ -55,13 +58,13 @@ inline void Scene::ConstructScene()
 	tex.LoadTexture(TextureFileName);
 
 	Model model1(GlobalEngine);
-	model1.InitModel({ 0,0,0 }, { 0,0,0 }, { 0.06,0.06,0.06 }, mesh, tex, IndexedInstanced, D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	model1.InitModel({ 0,-10 ,0 }, { 0,0,0 }, { 1,1,1 }, mesh, tex, IndexedInstanced, D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 
 	Mesh coordinate_axis(GlobalEngine);
 	coordinate_axis.LoadDefaultMesh();
 	Model axis(GlobalEngine);
-	axis.InitDefaultModel({ 0,0,0 }, { 0,0,0 }, { 100,100,100 }, coordinate_axis, Instanced, D3D_PRIMITIVE_TOPOLOGY_LINELIST);
+	axis.InitDefaultModel({ 0,0,0 }, { 0,0,0 }, { 1000,1000,1000 }, coordinate_axis, Instanced, D3D_PRIMITIVE_TOPOLOGY_LINELIST);
 
 
 	AppendTargetToRenderList(axis);
@@ -91,18 +94,16 @@ inline void Scene::RenderScene()
 	//设置渲染目标
 	GlobalEngine.pICommandList->OMSetRenderTargets(1, &rtvHandle, FALSE, &dsvHandle);
 	// 继续记录命令，并真正开始新一帧的渲染
-	const float clearColor[] = { 0.42f, 0.42f, 0.42f, 1.0f };
+	const float clearColor[] = { 245.0/255.0, 1.0f, 250.0/255.0, 1.0f };
 	GlobalEngine.pICommandList->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
 	GlobalEngine.pICommandList->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
+	
 	camera.UpdateCamera();
+	light.UpdateLight();
+
 	for (int i = 0; i < RenderList.size(); i++)
 	{
-		//计算 模型矩阵 model * 视矩阵 view
-		XMMATRIX xmMVP = XMMatrixMultiply(RenderList[i].ModelMatrix, camera.ViewMatrix);
-		//最后与投影矩阵 projection 相乘
-		xmMVP = XMMatrixMultiply(xmMVP, (XMMatrixPerspectiveFovLH(XM_PIDIV4, (FLOAT)GlobalEngine.iWidth / (FLOAT)GlobalEngine.iHeight, 0.1f, 1000.0f)));
-
-		RenderList[i].RenderModel(xmMVP);
+		RenderList[i].RenderModel(camera, light);
 	}
 	
 	//又一个资源屏障，用于确定渲染已经结束可以提交画面去显示了
@@ -143,5 +144,5 @@ inline void Scene::RenderScene()
 	wstring str3 = L"帧绘制完成\n";
 	wstring result = str1 + str2 + str3;
 	LPCWSTR frameInfo = result.c_str();
-	OutputDebugString(frameInfo);
+	//OutputDebugString(frameInfo);
 }

@@ -20,7 +20,7 @@ class Mesh
 public:
 	Mesh();
 	Mesh(Engine engine);
-	void LoadMesh(TCHAR MeshFilePath[]);
+	void LoadMesh(const char* MeshFilePath);
     void LoadDefaultMesh();
 	~Mesh();
 
@@ -46,11 +46,10 @@ Mesh::Mesh(Engine engine)
 	GlobalEngine = engine;
 }
 
-inline void Mesh::LoadMesh(TCHAR MeshFilePath[])
+inline void Mesh::LoadMesh(const char* MeshFilePath)
 {
-    const char* modelFilename = "D:\\OneDrive - University of Exeter\\MSc Advanced Computer Science\\Code Dir\\ACS Final Project\\FinalPorject\\ACS Final Project\\ACS Final Project\\Models\\kuroro.obj";
-    assert(modelFilename != nullptr);
-    const std::string filePath(modelFilename);
+    assert(MeshFilePath != nullptr);
+    const std::string filePath(MeshFilePath);
 
     Assimp::Importer importer;
     const std::uint32_t flags{ aiProcessPreset_TargetRealtime_Fast | aiProcess_ConvertToLeftHanded };
@@ -96,108 +95,6 @@ inline void Mesh::LoadMesh(TCHAR MeshFilePath[])
         }
     }
 
-    /*
-    
-    float fBoxSize = 1.0f;
-    float fTCMax = 2.0f;
-
-    vector<ModelMeshVertex> mesh_vertex = {
-        { {-1.0f * fBoxSize,  1.0f * fBoxSize, -1.0f * fBoxSize}, {0.0f * fTCMax, 0.0f * fTCMax}, {0.0f,  0.0f, -1.0f} },
-        { {1.0f * fBoxSize,  1.0f * fBoxSize, -1.0f * fBoxSize}, {1.0f * fTCMax, 0.0f * fTCMax},  {0.0f,  0.0f, -1.0f} },
-        { {-1.0f * fBoxSize, -1.0f * fBoxSize, -1.0f * fBoxSize}, {0.0f * fTCMax, 1.0f * fTCMax}, {0.0f,  0.0f, -1.0f} },
-        { {-1.0f * fBoxSize, -1.0f * fBoxSize, -1.0f * fBoxSize}, {0.0f * fTCMax, 1.0f * fTCMax}, {0.0f,  0.0f, -1.0f} },
-        { {1.0f * fBoxSize,  1.0f * fBoxSize, -1.0f * fBoxSize}, {1.0f * fTCMax, 0.0f * fTCMax},  {0.0f, 0.0f, -1.0f} },
-        { {1.0f * fBoxSize, -1.0f * fBoxSize, -1.0f * fBoxSize}, {1.0f * fTCMax, 1.0f * fTCMax},  {0.0f,  0.0f, -1.0f} },
-        { {1.0f * fBoxSize,  1.0f * fBoxSize, -1.0f * fBoxSize}, {0.0f * fTCMax, 0.0f * fTCMax},  {1.0f,  0.0f,  0.0f} },
-        { {1.0f * fBoxSize,  1.0f * fBoxSize,  1.0f * fBoxSize}, {1.0f * fTCMax, 0.0f * fTCMax},  {1.0f,  0.0f,  0.0f} },
-        { {1.0f * fBoxSize, -1.0f * fBoxSize, -1.0f * fBoxSize}, {0.0f * fTCMax, 1.0f * fTCMax},  {1.0f,  0.0f,  0.0f} },
-        { {1.0f * fBoxSize, -1.0f * fBoxSize, -1.0f * fBoxSize}, {0.0f * fTCMax, 1.0f * fTCMax},  {1.0f,  0.0f,  0.0f} },
-        { {1.0f * fBoxSize,  1.0f * fBoxSize,  1.0f * fBoxSize}, {1.0f * fTCMax, 0.0f * fTCMax},  {1.0f,  0.0f,  0.0f} },
-        { {1.0f * fBoxSize, -1.0f * fBoxSize,  1.0f * fBoxSize}, {1.0f * fTCMax, 1.0f * fTCMax},  {1.0f,  0.0f,  0.0f} },
-        { {1.0f * fBoxSize,  1.0f * fBoxSize,  1.0f * fBoxSize}, {0.0f * fTCMax, 0.0f * fTCMax},  {0.0f,  0.0f,  1.0f} },
-        { {-1.0f * fBoxSize,  1.0f * fBoxSize,  1.0f * fBoxSize}, {1.0f * fTCMax, 0.0f * fTCMax},  {0.0f,  0.0f,  1.0f} },
-        { {1.0f * fBoxSize, -1.0f * fBoxSize,  1.0f * fBoxSize}, {0.0f * fTCMax, 1.0f * fTCMax}, {0.0f,  0.0f,  1.0f} },
-        { {1.0f * fBoxSize, -1.0f * fBoxSize,  1.0f * fBoxSize}, {0.0f * fTCMax, 1.0f * fTCMax},  {0.0f,  0.0f,  1.0f} },
-        { {-1.0f * fBoxSize,  1.0f * fBoxSize,  1.0f * fBoxSize}, {1.0f * fTCMax, 0.0f * fTCMax},  {0.0f,  0.0f,  1.0f} },
-        { {-1.0f * fBoxSize, -1.0f * fBoxSize,  1.0f * fBoxSize}, {1.0f * fTCMax, 1.0f * fTCMax},  {0.0f,  0.0f,  1.0f} },
-        { {-1.0f * fBoxSize,  1.0f * fBoxSize,  1.0f * fBoxSize}, {0.0f * fTCMax, 0.0f * fTCMax}, {-1.0f,  0.0f,  0.0f} },
-        { {-1.0f * fBoxSize,  1.0f * fBoxSize, -1.0f * fBoxSize}, {1.0f * fTCMax, 0.0f * fTCMax}, {-1.0f,  0.0f,  0.0f} },
-        { {-1.0f * fBoxSize, -1.0f * fBoxSize,  1.0f * fBoxSize}, {0.0f * fTCMax, 1.0f * fTCMax}, {-1.0f,  0.0f,  0.0f} },
-        { {-1.0f * fBoxSize, -1.0f * fBoxSize,  1.0f * fBoxSize}, {0.0f * fTCMax, 1.0f * fTCMax}, {-1.0f,  0.0f,  0.0f} },
-        { {-1.0f * fBoxSize,  1.0f * fBoxSize, -1.0f * fBoxSize}, {1.0f * fTCMax, 0.0f * fTCMax}, {-1.0f,  0.0f,  0.0f} },
-        { {-1.0f * fBoxSize, -1.0f * fBoxSize, -1.0f * fBoxSize}, {1.0f * fTCMax, 1.0f * fTCMax}, {-1.0f,  0.0f,  0.0f} },
-        { {-1.0f * fBoxSize,  1.0f * fBoxSize,  1.0f * fBoxSize}, {0.0f * fTCMax, 0.0f * fTCMax},  {0.0f,  1.0f,  0.0f} },
-        { {1.0f * fBoxSize,  1.0f * fBoxSize,  1.0f * fBoxSize}, {1.0f * fTCMax, 0.0f * fTCMax},  {0.0f,  1.0f,  0.0f} },
-        { {-1.0f * fBoxSize,  1.0f * fBoxSize, -1.0f * fBoxSize}, {0.0f * fTCMax, 1.0f * fTCMax},  {0.0f,  1.0f,  0.0f} },
-        { {-1.0f * fBoxSize,  1.0f * fBoxSize, -1.0f * fBoxSize}, {0.0f * fTCMax, 1.0f * fTCMax},  {0.0f,  1.0f,  0.0f} },
-        { {1.0f * fBoxSize,  1.0f * fBoxSize,  1.0f * fBoxSize}, {1.0f * fTCMax, 0.0f * fTCMax},  {0.0f,  1.0f,  0.0f} },
-        { {1.0f * fBoxSize,  1.0f * fBoxSize, -1.0f * fBoxSize}, {1.0f * fTCMax, 1.0f * fTCMax},  {0.0f,  1.0f,  0.0f }},
-        { {-1.0f * fBoxSize, -1.0f * fBoxSize, -1.0f * fBoxSize}, {0.0f * fTCMax, 0.0f * fTCMax},  {0.0f, -1.0f,  0.0f} },
-        { {1.0f * fBoxSize, -1.0f * fBoxSize, -1.0f * fBoxSize}, {1.0f * fTCMax, 0.0f * fTCMax},  {0.0f, -1.0f,  0.0f} },
-        { {-1.0f * fBoxSize, -1.0f * fBoxSize,  1.0f * fBoxSize}, {0.0f * fTCMax, 1.0f * fTCMax},  {0.0f, -1.0f,  0.0f} },
-        { {-1.0f * fBoxSize, -1.0f * fBoxSize,  1.0f * fBoxSize}, {0.0f * fTCMax, 1.0f * fTCMax},  {0.0f, -1.0f,  0.0f} },
-        { {1.0f * fBoxSize, -1.0f * fBoxSize, -1.0f * fBoxSize}, {1.0f * fTCMax, 0.0f * fTCMax},  {0.0f, -1.0f,  0.0f} },
-        { {1.0f * fBoxSize, -1.0f * fBoxSize,  1.0f * fBoxSize}, {1.0f * fTCMax, 1.0f * fTCMax},  {0.0f, -1.0f,  0.0f} },
-    };
-    vector<int> mesh_index = {
-        0,1,2,
-        3,4,5,
-
-        6,7,8,
-        9,10,11,
-
-        12,13,14,
-        15,16,17,
-
-        18,19,20,
-        21,22,23,
-
-        24,25,26,
-        27,28,29,
-
-        30,31,32,
-        33,34,35,
-    };
-    
-
-    ifstream file(MeshFilePath);
-    if (file.is_open())
-    {
-        mesh_vertex.clear();
-        mesh_index.clear();
-
-        int vt_no = 0;
-        int vn_no = 0;
-
-        string line;
-        while (getline(file, line))
-        {
-            istringstream iss(line);
-            string prefix;
-
-            iss >> prefix;
-
-            if (prefix == "v") // 顶点信息
-            {
-                ModelMeshVertex vertex = {};
-                iss >> vertex.Position.x >> vertex.Position.y >> vertex.Position.z;
-                mesh_vertex.push_back(vertex);
-            }
-            else if (prefix == "vt") // 纹理坐标信息
-            {
-                iss >> mesh_vertex[vt_no].TextureCoordinate.x >> mesh_vertex[vt_no].TextureCoordinate.y;
-                vt_no++;
-            }
-            else if (prefix == "vn") // 法线信息
-            {
-                iss >> mesh_vertex[vn_no].Normal.x >> mesh_vertex[vn_no].Normal.y >> mesh_vertex[vn_no].Normal.z;
-                vn_no++;
-            }
-        }
-        file.close();
-    }
-
-    */
     const UINT nVertexBufferSize = sizeof(mesh_vertex) * mesh_vertex.size();
 
     const UINT nIndexBufferSize = sizeof(int) * mesh_index.size();
@@ -255,14 +152,14 @@ inline void Mesh::LoadMesh(TCHAR MeshFilePath[])
 inline void Mesh::LoadDefaultMesh()
 {
     DefaultMeshVertex coordinate_axis[] = {
-        { {-1.0f, 0.0f, 0.0f}, {1.0f, 0.0f, 0.0f} },//X轴，红色
-        { {1.0f, 0.0f, 0.0f}, {1.0f, 0.0f, 0.0f} }, //X轴，红色
+        { {-100.0f, 0.0f, 0.0f}, {100.0f, 0.0f, 0.0f} },//X轴，红色
+        { {100.0f, 0.0f, 0.0f}, {100.0f, 0.0f, 0.0f} }, //X轴，红色
 
-        { {0.0f, -1.0f, 0.0f}, {0.0f, 1.0f, 0.0f} },//Y轴，蓝色
-        { {0.0f, 1.0f, 0.0f}, {0.0f, 1.0f, 0.0f} }, //Y轴，蓝色
+        { {0.0f, -100.0f, 0.0f}, {0.0f, 100.0f, 0.0f} },//Y轴，蓝色
+        { {0.0f, 100.0f, 0.0f}, {0.0f, 100.0f, 0.0f} }, //Y轴，蓝色
 
-        { {0.0f, 0.0f, -1.0f}, {0.0f, 0.0f, 1.0f} },//Z轴，绿色
-        { {0.0f, 0.0f, 1.0f}, {0.0f, 0.0f, 1.0f} }  //Z轴，绿色
+        { {0.0f, 0.0f, -100.0f}, {0.0f, 0.0f, 100.0f} },//Z轴，绿色
+        { {0.0f, 0.0f, 100.0f}, {0.0f, 0.0f, 100.0f} }  //Z轴，绿色
     };
 
     const UINT nVertexBufferSize = sizeof(coordinate_axis);

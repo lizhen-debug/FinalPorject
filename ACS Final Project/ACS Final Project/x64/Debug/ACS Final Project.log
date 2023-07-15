@@ -1,12 +1,14 @@
 ﻿  Main.cpp
 D:\OneDrive - University of Exeter\MSc Advanced Computer Science\Code Dir\ACS Final Project\FinalPorject\ACS Final Project\ACS Final Project\Engine.h(74,24): warning C4244: “=”: 从“UINT”转换到“FLOAT”，可能丢失数据
 D:\OneDrive - University of Exeter\MSc Advanced Computer Science\Code Dir\ACS Final Project\FinalPorject\ACS Final Project\ACS Final Project\Engine.h(75,25): warning C4244: “=”: 从“UINT”转换到“FLOAT”，可能丢失数据
-D:\OneDrive - University of Exeter\MSc Advanced Computer Science\Code Dir\ACS Final Project\FinalPorject\ACS Final Project\ACS Final Project\Mesh.h(201,76): warning C4267: “初始化”: 从“size_t”转换到“UINT”，可能丢失数据
-D:\OneDrive - University of Exeter\MSc Advanced Computer Science\Code Dir\ACS Final Project\FinalPorject\ACS Final Project\ACS Final Project\Mesh.h(201,76): warning C4267: “初始化”: 从“size_t”转换到“const UINT”，可能丢失数据
-D:\OneDrive - University of Exeter\MSc Advanced Computer Science\Code Dir\ACS Final Project\FinalPorject\ACS Final Project\ACS Final Project\Mesh.h(203,66): warning C4267: “初始化”: 从“size_t”转换到“UINT”，可能丢失数据
-D:\OneDrive - University of Exeter\MSc Advanced Computer Science\Code Dir\ACS Final Project\FinalPorject\ACS Final Project\ACS Final Project\Mesh.h(203,66): warning C4267: “初始化”: 从“size_t”转换到“const UINT”，可能丢失数据
-D:\OneDrive - University of Exeter\MSc Advanced Computer Science\Code Dir\ACS Final Project\FinalPorject\ACS Final Project\ACS Final Project\Mesh.h(205,36): warning C4267: “=”: 从“size_t”转换到“UINT”，可能丢失数据
-D:\OneDrive - University of Exeter\MSc Advanced Computer Science\Code Dir\ACS Final Project\FinalPorject\ACS Final Project\ACS Final Project\Mesh.h(206,38): warning C4267: “=”: 从“size_t”转换到“UINT”，可能丢失数据
-D:\OneDrive - University of Exeter\MSc Advanced Computer Science\Code Dir\ACS Final Project\FinalPorject\ACS Final Project\ACS Final Project\Scene.h(58,125): warning C4305: “参数”: 从“double”到“float”截断
-D:\OneDrive - University of Exeter\MSc Advanced Computer Science\Code Dir\ACS Final Project\FinalPorject\ACS Final Project\ACS Final Project\Main.cpp(139,44): warning C4305: “参数”: 从“double”到“float”截断
+D:\OneDrive - University of Exeter\MSc Advanced Computer Science\Code Dir\ACS Final Project\FinalPorject\ACS Final Project\ACS Final Project\Mesh.h(98,76): warning C4267: “初始化”: 从“size_t”转换到“UINT”，可能丢失数据
+D:\OneDrive - University of Exeter\MSc Advanced Computer Science\Code Dir\ACS Final Project\FinalPorject\ACS Final Project\ACS Final Project\Mesh.h(98,76): warning C4267: “初始化”: 从“size_t”转换到“const UINT”，可能丢失数据
+D:\OneDrive - University of Exeter\MSc Advanced Computer Science\Code Dir\ACS Final Project\FinalPorject\ACS Final Project\ACS Final Project\Mesh.h(100,66): warning C4267: “初始化”: 从“size_t”转换到“UINT”，可能丢失数据
+D:\OneDrive - University of Exeter\MSc Advanced Computer Science\Code Dir\ACS Final Project\FinalPorject\ACS Final Project\ACS Final Project\Mesh.h(100,66): warning C4267: “初始化”: 从“size_t”转换到“const UINT”，可能丢失数据
+D:\OneDrive - University of Exeter\MSc Advanced Computer Science\Code Dir\ACS Final Project\FinalPorject\ACS Final Project\ACS Final Project\Mesh.h(102,36): warning C4267: “=”: 从“size_t”转换到“UINT”，可能丢失数据
+D:\OneDrive - University of Exeter\MSc Advanced Computer Science\Code Dir\ACS Final Project\FinalPorject\ACS Final Project\ACS Final Project\Mesh.h(103,38): warning C4267: “=”: 从“size_t”转换到“UINT”，可能丢失数据
+D:\OneDrive - University of Exeter\MSc Advanced Computer Science\Code Dir\ACS Final Project\FinalPorject\ACS Final Project\ACS Final Project\Scene.h(97,68): warning C4305: “初始化”: 从“double”到“const float”截断
+D:\OneDrive - University of Exeter\MSc Advanced Computer Science\Code Dir\ACS Final Project\FinalPorject\ACS Final Project\ACS Final Project\Main.cpp(54,47): warning C4244: “参数”: 从“double”转换到“float”，可能丢失数据
+D:\OneDrive - University of Exeter\MSc Advanced Computer Science\Code Dir\ACS Final Project\FinalPorject\ACS Final Project\ACS Final Project\Main.cpp(55,49): warning C4244: “参数”: 从“double”转换到“float”，可能丢失数据
+D:\OneDrive - University of Exeter\MSc Advanced Computer Science\Code Dir\ACS Final Project\FinalPorject\ACS Final Project\ACS Final Project\Main.cpp(230,44): warning C4305: “参数”: 从“double”到“float”截断
   ACS Final Project.vcxproj -> D:\OneDrive - University of Exeter\MSc Advanced Computer Science\Code Dir\ACS Final Project\FinalPorject\ACS Final Project\x64\Debug\ACS Final Project.exe
