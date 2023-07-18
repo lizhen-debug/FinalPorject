@@ -123,19 +123,34 @@ DXGI_FORMAT GetDXGIFormatFromPixelFormat(const GUID* pPixelFormat)
 }
 
 
+struct stImageInfo
+{
+    TCHAR*          m_pszTextureFile;
+    DXGI_FORMAT     m_emTextureFormat;
+    UINT            m_nTextureW;
+    UINT            m_nTextureH;
+    UINT            m_nPicRowPitch;
+    BYTE*           m_pbImageData;
+    size_t          m_szBufferSize;
+};
+
 class Texture
 {
 public:
 	Texture();
 	Texture(Engine engine);
-    void LoadTexture(TCHAR TexcuteFilePath[]);
+    void LoadTexture(TCHAR TexcuteFilePath[], D3D12_SRV_DIMENSION type);
+    void LoadTextureArray(stImageInfo texArray[], UINT texNum, D3D12_SRV_DIMENSION type);
 	~Texture();
     
     ComPtr<ID3D12Resource>				 pITexture;
     UINT nTextureW = 0u;//纹理宽度
     UINT nTextureH = 0u;//纹理高度
-
+    D3D12_SRV_DIMENSION emTextureType = {};
 private:
+
+    void WICLoadImageFunction(stImageInfo *image_info);
+
 	Engine GlobalEngine;
 
     ComPtr<IWICImagingFactory>			 pIWICFactory;
@@ -167,8 +182,9 @@ Texture::Texture(Engine engine)
 	GlobalEngine = engine;
 }
 
-inline void Texture::LoadTexture(TCHAR TexcuteFilePath[])
+inline void Texture::LoadTexture(TCHAR TexcuteFilePath[], D3D12_SRV_DIMENSION type)
 {
+    /*
     //----------------------------------------------------------------------------------
     //使用纯COM方式创建WIC类厂对象，也是调用WIC第一步要做的事情
     HRESULT hr = CoCreateInstance(CLSID_WICImagingFactory, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&pIWICFactory));
@@ -240,15 +256,21 @@ inline void Texture::LoadTexture(TCHAR TexcuteFilePath[])
     //计算图片实际的行大小（单位：字节），这里使用了一个上取整除法即（A+B-1）/B ，
     nPicRowPitch = (uint64_t(nTextureW) * uint64_t(nBPP) + 7u) / 8u;
     //----------------------------------------------------------------------------------
-
+    */
     
+    emTextureType = type;
+
+    stImageInfo image = {};
+
+    image.m_pszTextureFile = TexcuteFilePath;
+    WICLoadImageFunction(&image);
 
     //填充纹理结构体
     stTextureDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
     stTextureDesc.MipLevels = 1;
-    stTextureDesc.Format = stTextureFormat; //DXGI_FORMAT_R8G8B8A8_UNORM;
-    stTextureDesc.Width = nTextureW;
-    stTextureDesc.Height = nTextureH;
+    stTextureDesc.Format = image.m_emTextureFormat; //DXGI_FORMAT_R8G8B8A8_UNORM;
+    stTextureDesc.Width = image.m_nTextureW;
+    stTextureDesc.Height = image.m_nTextureH;
     stTextureDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
     stTextureDesc.DepthOrArraySize = 1;
     stTextureDesc.SampleDesc.Count = 1;
@@ -280,6 +302,7 @@ inline void Texture::LoadTexture(TCHAR TexcuteFilePath[])
         nullptr,
         IID_PPV_ARGS(&pITextureUpload));
 
+    /*
     //按照资源缓冲大小来分配实际图片数据存储的内存大小
     void* pbPicData = ::HeapAlloc(::GetProcessHeap(), HEAP_ZERO_MEMORY, n64UploadBufferSize);
   
@@ -288,7 +311,7 @@ inline void Texture::LoadTexture(TCHAR TexcuteFilePath[])
         , nPicRowPitch
         , static_cast<UINT>(nPicRowPitch * nTextureH)   //注意这里才是图片数据真实的大小，这个值通常小于缓冲的大小
         , reinterpret_cast<BYTE*>(pbPicData));
-
+    */
     //---------------------------------------------------------------------------------------------
     //获取向上传堆拷贝纹理数据的一些纹理转换尺寸信息
     //对于复杂的DDS纹理这是非常必要的过程
@@ -317,12 +340,15 @@ inline void Texture::LoadTexture(TCHAR TexcuteFilePath[])
     pITextureUpload->Map(0, NULL, reinterpret_cast<void**>(&pData));
 
     BYTE* pDestSlice = reinterpret_cast<BYTE*>(pData) + stTxtLayouts.Offset;
-    const BYTE* pSrcSlice = reinterpret_cast<const BYTE*>(pbPicData);
+
+    //const BYTE* pSrcSlice = reinterpret_cast<const BYTE*>(pbPicData);
+    const BYTE* pSrcSlice = image.m_pbImageData;
+
     for (UINT y = 0; y < nTextureRowNum; ++y)
     {
         memcpy(pDestSlice + static_cast<SIZE_T>(stTxtLayouts.Footprint.RowPitch) * y
-            , pSrcSlice + static_cast<SIZE_T>(nPicRowPitch) * y
-            , nPicRowPitch);
+            , pSrcSlice + static_cast<SIZE_T>(image.m_nPicRowPitch) * y
+            , image.m_nPicRowPitch);
     }
     //取消映射 对于易变的数据如每帧的变换矩阵等数据，可以撒懒不用Unmap了，
     //让它常驻内存,以提高整体性能，因为每次Map和Unmap是很耗时的操作
@@ -330,8 +356,8 @@ inline void Texture::LoadTexture(TCHAR TexcuteFilePath[])
     pITextureUpload->Unmap(0, NULL);
 
     //释放图片数据，做一个干净的程序员
-    ::HeapFree(::GetProcessHeap(), 0, pbPicData);
-
+    //::HeapFree(::GetProcessHeap(), 0, pbPicData);
+    ::HeapFree(::GetProcessHeap(), 0, image.m_pbImageData);
     //---------------------------------------------------------------------------------------------
     //向命令队列发出从上传堆复制纹理数据到默认堆的命令
     CD3DX12_TEXTURE_COPY_LOCATION Dst(pITexture.Get(), 0);
@@ -381,6 +407,255 @@ inline void Texture::LoadTexture(TCHAR TexcuteFilePath[])
     
 }
 
+inline void Texture::LoadTextureArray(stImageInfo texArray[], UINT texNum, D3D12_SRV_DIMENSION type)
+{
+    emTextureType = type;
+
+    for (int i = 0; i < texNum; i++)
+    {
+        WICLoadImageFunction(&texArray[i]);
+    }
+
+    //填充纹理结构体
+    stTextureDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+    stTextureDesc.MipLevels = 1;
+    stTextureDesc.Format = texArray[0].m_emTextureFormat; //DXGI_FORMAT_R8G8B8A8_UNORM;
+    stTextureDesc.Width = texArray[0].m_nTextureW;
+    stTextureDesc.Height = texArray[0].m_nTextureH;
+    stTextureDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
+    stTextureDesc.DepthOrArraySize = texNum;
+    stTextureDesc.SampleDesc.Count = 1;
+    stTextureDesc.SampleDesc.Quality = 0;
+
+    //创建纹理默认堆
+    D3D12_HEAP_PROPERTIES stHeapDefault = { D3D12_HEAP_TYPE_DEFAULT };
+    GlobalEngine.pID3DDevice->CreateCommittedResource(
+        &stHeapDefault,
+        D3D12_HEAP_FLAG_NONE,
+        &stTextureDesc,
+        D3D12_RESOURCE_STATE_COPY_DEST,
+        nullptr,
+        IID_PPV_ARGS(&pITexture));
+
+    //---------------------------------------------------------------------------------------------
+    UINT64 n64RequiredSize = 0u;
+    UINT   nNumSubresources = texNum;
+    UINT64* n64TextureRowSizes = new UINT64[texNum];
+    UINT* nTextureRowNum = new UINT[texNum];
+    D3D12_PLACED_SUBRESOURCE_FOOTPRINT* stTxtArrayLayouts = new D3D12_PLACED_SUBRESOURCE_FOOTPRINT[texNum];
+
+    stDestDesc = pITexture->GetDesc();
+
+    GlobalEngine.pID3DDevice->GetCopyableFootprints(&stDestDesc
+        , 0
+        , nNumSubresources
+        , 0
+        , stTxtArrayLayouts
+        , nTextureRowNum
+        , n64TextureRowSizes
+        , &n64RequiredSize);
+    //---------------------------------------------------------------------------------------------
+
+    D3D12_HEAP_PROPERTIES stHeapUpload = { D3D12_HEAP_TYPE_UPLOAD };
+
+    D3D12_RESOURCE_DESC stTextureUploadDesc = CD3DX12_RESOURCE_DESC::Buffer(n64RequiredSize);
+
+    //创建纹理上传堆
+    GlobalEngine.pID3DDevice->CreateCommittedResource(
+        &stHeapUpload,
+        D3D12_HEAP_FLAG_NONE,
+        &stTextureUploadDesc,
+        D3D12_RESOURCE_STATE_GENERIC_READ,
+        nullptr,
+        IID_PPV_ARGS(&pITextureUpload));
+
+    BYTE* pData = nullptr;
+    pITextureUpload->Map(0, NULL, reinterpret_cast<void**>(&pData));
+
+    for (int i = 0; i < texNum; i++)
+    {
+        D3D12_MEMCPY_DEST stCopyDestData = { pData + stTxtArrayLayouts[i].Offset
+                    , stTxtArrayLayouts[i].Footprint.RowPitch
+                    , stTxtArrayLayouts[i].Footprint.RowPitch * nTextureRowNum[i]
+        };
+
+        for (UINT z = 0; z < stTxtArrayLayouts[i].Footprint.Depth; ++z)
+        {// Mipmap
+            BYTE* pDestSlice = reinterpret_cast<BYTE*>(stCopyDestData.pData) + stCopyDestData.SlicePitch * z;
+            const BYTE* pSrcSlice = texArray[i].m_pbImageData;
+
+            for (UINT y = 0; y < nTextureRowNum[i]; ++y)
+            {// Rows
+                memcpy(pDestSlice + stCopyDestData.RowPitch * y,
+                    pSrcSlice + texArray[i].m_nPicRowPitch * y,
+                    (SIZE_T)n64TextureRowSizes[i]);
+            }
+        }
+    }
+    //取消映射 对于易变的数据如每帧的变换矩阵等数据，可以撒懒不用Unmap了，
+    //让它常驻内存,以提高整体性能，因为每次Map和Unmap是很耗时的操作
+    //因为现在起码都是64位系统和应用了，地址空间是足够的，被长期占用不会影响什么
+    pITextureUpload->Unmap(0, NULL);
+
+    //释放图片数据，做一个干净的程序员
+    for (int i = 0; i < texNum; i++)
+    {
+        ::HeapFree(::GetProcessHeap(), 0, texArray[i].m_pbImageData);
+    }
+
+    for (UINT i = 0; i < nNumSubresources; ++i)
+    {// 注意每个子资源复制一次
+        D3D12_TEXTURE_COPY_LOCATION stDstCopyLocation = {};
+        stDstCopyLocation.pResource = pITexture.Get();
+        stDstCopyLocation.Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;
+        stDstCopyLocation.SubresourceIndex = i;
+
+        D3D12_TEXTURE_COPY_LOCATION stSrcCopyLocation = {};
+        stSrcCopyLocation.pResource = pITextureUpload.Get();
+        stSrcCopyLocation.Type = D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT;
+        stSrcCopyLocation.PlacedFootprint = stTxtArrayLayouts[i];
+
+        GlobalEngine.pICommandList->CopyTextureRegion(&stDstCopyLocation, 0, 0, 0, &stSrcCopyLocation, nullptr);
+    }
+
+    //设置一个资源屏障，同步并确认复制操作完成
+    //直接使用结构体然后调用的形式
+    D3D12_RESOURCE_BARRIER stResBar = {};
+    stResBar.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+    stResBar.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+    stResBar.Transition.pResource = pITexture.Get();
+    stResBar.Transition.StateBefore = D3D12_RESOURCE_STATE_COPY_DEST;
+    stResBar.Transition.StateAfter = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+    stResBar.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+
+    stResBar.Transition.pResource = pITexture.Get();
+
+    GlobalEngine.pICommandList->ResourceBarrier(1, &stResBar);
+
+    //---------------------------------------------------------------------------------------------
+    // 执行命令列表并等待纹理资源上传完成，这一步是必须的
+    GlobalEngine.pICommandList->Close();
+    ID3D12CommandList* ppCommandLists[] = { GlobalEngine.pICommandList.Get() };
+    GlobalEngine.pICommandQueue->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
+
+    //等待纹理资源正式复制完成
+    const UINT64 fence = GlobalEngine.n64FenceValue;
+    GlobalEngine.pICommandQueue->Signal(GlobalEngine.pIFence.Get(), fence);
+    GlobalEngine.n64FenceValue++;
+
+    //---------------------------------------------------------------------------------------------
+    // 看命令有没有真正执行到围栏标记的这里，没有就利用事件去等待，注意使用的是命令队列对象的指针
+    if (GlobalEngine.pIFence->GetCompletedValue() < fence)
+    {
+        GlobalEngine.pIFence->SetEventOnCompletion(fence, GlobalEngine.hFenceEvent);
+        WaitForSingleObject(GlobalEngine.hFenceEvent, INFINITE);
+    }
+
+    //命令分配器先Reset一下，刚才已经执行过了一个复制纹理的命令
+    GlobalEngine.pICommandAllocator->Reset();
+    //Reset命令列表，并重新指定命令分配器和PSO对象
+    GlobalEngine.pICommandList->Reset(GlobalEngine.pICommandAllocator.Get(), GlobalEngine.pIPipelineState1.Get());
+
+    //---------------------------------------------------------------------------------------------
+
+    delete[] n64TextureRowSizes;
+    delete[] nTextureRowNum;
+    delete[] stTxtArrayLayouts;
+
+}
+
 Texture::~Texture()
 {
+}
+
+inline void Texture::WICLoadImageFunction(stImageInfo* image_info)
+{
+    //----------------------------------------------------------------------------------
+    //使用纯COM方式创建WIC类厂对象，也是调用WIC第一步要做的事情
+    HRESULT hr = CoCreateInstance(CLSID_WICImagingFactory, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&pIWICFactory));
+
+    //使用WIC类厂对象接口加载纹理图片，并得到一个WIC解码器对象接口，图片信息就在这个接口代表的对象中了
+    pIWICFactory->CreateDecoderFromFilename(
+        image_info->m_pszTextureFile,    // 文件名
+        NULL,                            // 不指定解码器，使用默认
+        GENERIC_READ,                    // 访问权限
+        WICDecodeMetadataCacheOnDemand,  // 若需要就缓冲数据 
+        &pIWICDecoder                    // 解码器对象
+    );
+
+    //获取第一帧图片，解析出的通常是位图
+    pIWICDecoder->GetFrame(0, &pIWICFrame);
+
+    WICPixelFormatGUID wpf = {};
+    //获取WIC图片格式
+    pIWICFrame->GetPixelFormat(&wpf);
+    GUID tgFormat = {};
+
+    //通过第一道转换之后获取DXGI的等价格式
+    if (GetTargetPixelFormat(&wpf, &tgFormat))
+    {
+        stTextureFormat = GetDXGIFormatFromPixelFormat(&tgFormat);
+    }
+
+    // 定义一个位图格式的图片数据对象接口
+    if (!InlineIsEqualGUID(wpf, tgFormat))
+    {//这个判断很重要，如果原WIC格式不是直接能转换为DXGI格式的图片时
+     //需要做的就是转换图片格式为能够直接对应DXGI格式的形式
+        //创建图片格式转换器
+        ComPtr<IWICFormatConverter> pIConverter;
+        pIWICFactory->CreateFormatConverter(&pIConverter);
+
+        //初始化一个图片转换器，实际也就是将图片数据进行了格式转换
+        pIConverter->Initialize(
+            pIWICFrame.Get(),                // 输入原图片数据
+            tgFormat,						 // 指定待转换的目标格式
+            WICBitmapDitherTypeNone,         // 指定位图是否有调色板，现代都是真彩位图，不用调色板，所以为None
+            NULL,                            // 指定调色板指针
+            0.f,                             // 指定Alpha阀值
+            WICBitmapPaletteTypeCustom       // 调色板类型，实际没有使用，所以指定为Custom
+        );
+        // 调用QueryInterface方法获得对象的位图数据源接口
+        pIConverter.As(&pIBMP);
+    }
+    else
+    {
+        //图片数据格式不需要转换，直接获取其位图数据源接口
+        pIWICFrame.As(&pIBMP);
+    }
+    //获得图片大小（单位：像素）
+    pIBMP->GetSize(&nTextureW, &nTextureH);
+
+    //获取图片像素的位大小的BPP（Bits Per Pixel）信息，用以计算图片行数据的真实大小（单位：字节）
+    ComPtr<IWICComponentInfo> pIWICmntinfo;
+    pIWICFactory->CreateComponentInfo(tgFormat, pIWICmntinfo.GetAddressOf());
+
+    WICComponentType type;
+    pIWICmntinfo->GetComponentType(&type);
+
+    ComPtr<IWICPixelFormatInfo> pIWICPixelinfo;
+    pIWICmntinfo.As(&pIWICPixelinfo);
+
+    //得到BPP
+    pIWICPixelinfo->GetBitsPerPixel(&nBPP);
+
+    //计算图片实际的行大小（单位：字节），这里使用了一个上取整除法即（A+B-1）/B ，
+    nPicRowPitch = (uint64_t(nTextureW) * uint64_t(nBPP) + 7u) / 8u;
+    //----------------------------------------------------------------------------------
+    
+    //按照资源缓冲大小来分配实际图片数据存储的内存大小
+    void* pbPicData = ::HeapAlloc(::GetProcessHeap(), HEAP_ZERO_MEMORY, (UINT64)(nPicRowPitch * nTextureH));
+
+    //从图片中读取出数据
+    pIBMP->CopyPixels(nullptr
+        , nPicRowPitch
+        , static_cast<UINT>(nPicRowPitch * nTextureH)   //注意这里才是图片数据真实的大小，这个值通常小于缓冲的大小
+        , reinterpret_cast<BYTE*>(pbPicData));
+
+    image_info->m_pbImageData = reinterpret_cast<BYTE*>(pbPicData);
+    image_info->m_nPicRowPitch = nPicRowPitch;
+    image_info->m_nTextureW = nTextureW;
+    image_info->m_nTextureH = nTextureH;
+    image_info->m_emTextureFormat = stTextureFormat;
+    image_info->m_szBufferSize = nPicRowPitch * nTextureH;
+
 }

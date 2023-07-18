@@ -52,21 +52,49 @@ inline void Scene::ConstructScene()
 	const char* MeshFileName = "D:\\OneDrive - University of Exeter\\MSc Advanced Computer Science\\Code Dir\\ACS Final Project\\FinalPorject\\ACS Final Project\\ACS Final Project\\Models\\kuroro.obj";
 	Mesh mesh(GlobalEngine);
 	mesh.LoadMesh(MeshFileName);
-
 	TCHAR TextureFileName[] = _T("D:\\OneDrive - University of Exeter\\MSc Advanced Computer Science\\Code Dir\\ACS Final Project\\FinalPorject\\ACS Final Project\\ACS Final Project\\Models\\Kuroro_UV\\diffuse.png");
 	Texture tex(GlobalEngine);
-	tex.LoadTexture(TextureFileName);
+	tex.LoadTexture(TextureFileName, D3D12_SRV_DIMENSION_TEXTURE2D);
 
 	Model model1(GlobalEngine);
 	model1.InitModel({ 0,-10 ,0 }, { 0,0,0 }, { 1,1,1 }, mesh, tex, IndexedInstanced, D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
+	//const char* MeshFileName2 = "D:\\OneDrive - University of Exeter\\MSc Advanced Computer Science\\Code Dir\\ACS Final Project\\FinalPorject\\ACS Final Project\\ACS Final Project\\Models\\Scene\\scene.obj";
+	//Mesh mesh2(GlobalEngine);
+	//mesh2.LoadMesh(MeshFileName2);
+	//TCHAR TextureFileName2[] = _T("D:\\OneDrive - University of Exeter\\MSc Advanced Computer Science\\Code Dir\\ACS Final Project\\FinalPorject\\ACS Final Project\\ACS Final Project\\Models\\Scene\\scene.png");
+	//Texture tex2(GlobalEngine);
+	//tex2.LoadTexture(TextureFileName2, D3D12_SRV_DIMENSION_TEXTURE2D);
+	//Model model2(GlobalEngine);
+	//model2.InitModel({ 0,0 ,0 }, { 0,0,0 }, { 1,1,1 }, mesh2, tex2, IndexedInstanced, D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	//AppendTargetToRenderList(model2);
 
 	Mesh coordinate_axis(GlobalEngine);
 	coordinate_axis.LoadDefaultMesh();
 	Model axis(GlobalEngine);
 	axis.InitDefaultModel({ 0,0,0 }, { 0,0,0 }, { 1000,1000,1000 }, coordinate_axis, Instanced, D3D_PRIMITIVE_TOPOLOGY_LINELIST);
 
+	Mesh skyBoxMesh(GlobalEngine);
+	skyBoxMesh.LoadSkyBoxMesh();
+	stImageInfo skyBoxTexArray[6] = {};
+	TCHAR skyBoxRight[] = _T("D:\\OneDrive - University of Exeter\\MSc Advanced Computer Science\\Code Dir\\ACS Final Project\\FinalPorject\\ACS Final Project\\ACS Final Project\\Textures\\skybox\\style1\\right.jpg");
+	skyBoxTexArray[0].m_pszTextureFile = skyBoxRight;
+	TCHAR skyBoxLeft[] = _T("D:\\OneDrive - University of Exeter\\MSc Advanced Computer Science\\Code Dir\\ACS Final Project\\FinalPorject\\ACS Final Project\\ACS Final Project\\Textures\\skybox\\style1\\left.jpg");
+	skyBoxTexArray[1].m_pszTextureFile = skyBoxLeft;
+	TCHAR skyBoxTop[] = _T("D:\\OneDrive - University of Exeter\\MSc Advanced Computer Science\\Code Dir\\ACS Final Project\\FinalPorject\\ACS Final Project\\ACS Final Project\\Textures\\skybox\\style1\\top.jpg");
+	skyBoxTexArray[2].m_pszTextureFile = skyBoxTop;
+	TCHAR skyBoxBottom[] = _T("D:\\OneDrive - University of Exeter\\MSc Advanced Computer Science\\Code Dir\\ACS Final Project\\FinalPorject\\ACS Final Project\\ACS Final Project\\Textures\\skybox\\style1\\bottom.jpg");
+	skyBoxTexArray[3].m_pszTextureFile = skyBoxBottom;
+	TCHAR skyBoxFront[] = _T("D:\\OneDrive - University of Exeter\\MSc Advanced Computer Science\\Code Dir\\ACS Final Project\\FinalPorject\\ACS Final Project\\ACS Final Project\\Textures\\skybox\\style1\\front.jpg");
+	skyBoxTexArray[4].m_pszTextureFile = skyBoxFront;
+	TCHAR skyBoxBack[] = _T("D:\\OneDrive - University of Exeter\\MSc Advanced Computer Science\\Code Dir\\ACS Final Project\\FinalPorject\\ACS Final Project\\ACS Final Project\\Textures\\skybox\\style1\\back.jpg");
+	skyBoxTexArray[5].m_pszTextureFile = skyBoxBack;
+	Texture skyBoxTex(GlobalEngine);
+	skyBoxTex.LoadTextureArray(skyBoxTexArray, 6, D3D12_SRV_DIMENSION_TEXTURECUBE);
+	Model skyBoxModel(GlobalEngine);
+	skyBoxModel.InitModel({ 0,0,0 }, { 0,0,0 }, { 1,1,1 }, skyBoxMesh, skyBoxTex, Skybox, D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 
+	AppendTargetToRenderList(skyBoxModel);
 	AppendTargetToRenderList(axis);
 	AppendTargetToRenderList(model1);
 	

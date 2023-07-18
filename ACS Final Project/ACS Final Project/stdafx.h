@@ -40,6 +40,6 @@ using namespace DirectX;
 #define GRS_UPPER(A,B) ((UINT)(((A)+((B)-1))&~(B - 1)))
 
 
-UINT nCurrentSamplerNO = 0; //当前使用的采样器索引
+UINT nCurrentSamplerNO = 2; //当前使用的采样器索引
 UINT nSampleMaxCnt = 5;		//创建五个典型的采样器
 

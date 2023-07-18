@@ -21,7 +21,7 @@ struct ConstVaribleBuffer
 
 enum RenderMethod
 {
-	IndexedInstanced, Instanced
+	IndexedInstanced, Instanced, Skybox
 };
 
 class Model
@@ -114,8 +114,8 @@ inline void Model::InitModel(XMFLOAT3 position, XMFLOAT3 rotation, XMFLOAT3 scal
 	D3D12_SHADER_RESOURCE_VIEW_DESC stSRVDesc = {};
 	stSRVDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
 	stSRVDesc.Format = UsedTexture.pITexture->GetDesc().Format;
-	stSRVDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
-	stSRVDesc.Texture2D.MipLevels = 1;
+	stSRVDesc.ViewDimension = UsedTexture.emTextureType;
+	stSRVDesc.Texture2D.MipLevels = UsedTexture.pITexture->GetDesc().MipLevels;
 
 	GlobalEngine.pID3DDevice->CreateShaderResourceView(
 		UsedTexture.pITexture.Get(),
@@ -252,6 +252,10 @@ inline void Model::RenderModel(Camera camera, Light light)
 		break;
 	case Instanced:
 		GlobalEngine.pICommandList->SetPipelineState(GlobalEngine.pIPipelineState2.Get());
+		GlobalEngine.pICommandList->DrawInstanced(UsedMesh.nVerticesNum, 1, 0, 0);
+		break;
+	case Skybox:
+		GlobalEngine.pICommandList->SetPipelineState(GlobalEngine.pIPipelineState3.Get());
 		GlobalEngine.pICommandList->DrawInstanced(UsedMesh.nVerticesNum, 1, 0, 0);
 		break;
 	default:

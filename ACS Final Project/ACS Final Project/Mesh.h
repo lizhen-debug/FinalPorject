@@ -15,6 +15,11 @@ struct DefaultMeshVertex
     XMFLOAT3 Color;
 };
 
+struct CubeMeshVertex
+{
+    XMFLOAT4 Position;
+};
+
 class Mesh
 {
 public:
@@ -22,6 +27,7 @@ public:
 	Mesh(Engine engine);
 	void LoadMesh(const char* MeshFilePath);
     void LoadDefaultMesh();
+    void LoadSkyBoxMesh();
 	~Mesh();
 
     //一个用于提供给绘制命令队列的顶点buffer的view，描述了顶点buffer的信息
@@ -189,6 +195,61 @@ inline void Mesh::LoadDefaultMesh()
     //填充顶点buffer视图的结构体，告诉GPU被描述的资源实际是Vertex Buffer
     stVertexBufferView.BufferLocation = pIVertexBuffer->GetGPUVirtualAddress();
     stVertexBufferView.StrideInBytes = sizeof(DefaultMeshVertex);
+    stVertexBufferView.SizeInBytes = nVertexBufferSize;
+}
+
+inline void Mesh::LoadSkyBoxMesh()
+{
+    float fHighW = -1.0f - (1.0f / (float)GlobalEngine.iWidth);
+    float fHighH = -1.0f - (1.0f / (float)GlobalEngine.iHeight);
+    float fLowW = 1.0f + (1.0f / (float)GlobalEngine.iWidth);
+    float fLowH = 1.0f + (1.0f / (float)GlobalEngine.iHeight);
+
+    CubeMeshVertex stSkyboxVertices[4] = {};
+
+    stSkyboxVertices[0].Position = XMFLOAT4(fLowW, fLowH, 1.0f, 1.0f);
+    stSkyboxVertices[1].Position = XMFLOAT4(fLowW, fHighH, 1.0f, 1.0f);
+    stSkyboxVertices[2].Position = XMFLOAT4(fHighW, fLowH, 1.0f, 1.0f);
+    stSkyboxVertices[3].Position = XMFLOAT4(fHighW, fHighH, 1.0f, 1.0f);
+
+    const UINT nVertexBufferSize = sizeof(stSkyboxVertices);
+    nVerticesNum = _countof(stSkyboxVertices);
+
+    //填充资源结构体及创建提交资源对象
+    D3D12_RESOURCE_DESC stBufResDesc = {};
+    stBufResDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
+    stBufResDesc.Alignment = D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT;
+    stBufResDesc.Width = nVertexBufferSize;
+    stBufResDesc.Height = 1;
+    stBufResDesc.DepthOrArraySize = 1;
+    stBufResDesc.MipLevels = 1;
+    stBufResDesc.Format = DXGI_FORMAT_UNKNOWN;
+    stBufResDesc.SampleDesc.Count = 1;
+    stBufResDesc.SampleDesc.Quality = 0;
+    stBufResDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
+    stBufResDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
+
+    //堆属性设置为上传堆
+    D3D12_HEAP_PROPERTIES stHeapUpload = { D3D12_HEAP_TYPE_UPLOAD };//Upload的概念就是从CPU内存上传到显存中的意思
+
+    //创建顶点缓冲
+    GlobalEngine.pID3DDevice->CreateCommittedResource(
+        &stHeapUpload,
+        D3D12_HEAP_FLAG_NONE,
+        &stBufResDesc,
+        D3D12_RESOURCE_STATE_GENERIC_READ,
+        nullptr,
+        IID_PPV_ARGS(&pIVertexBuffer));
+    //上述核心即为得到要绘制的顶点buffer，用于下面将绘制数据从CPU内存向显存进行传递
+    UINT8* pVertexDataBegin = nullptr;
+    CD3DX12_RANGE readRange(0, 0);
+    pIVertexBuffer->Map(0, &readRange, reinterpret_cast<void**>(&pVertexDataBegin));
+    memcpy(pVertexDataBegin, stSkyboxVertices, nVertexBufferSize);
+    pIVertexBuffer->Unmap(0, nullptr);
+
+    //填充顶点buffer视图的结构体，告诉GPU被描述的资源实际是Vertex Buffer
+    stVertexBufferView.BufferLocation = pIVertexBuffer->GetGPUVirtualAddress();
+    stVertexBufferView.StrideInBytes = sizeof(CubeMeshVertex);
     stVertexBufferView.SizeInBytes = nVertexBufferSize;
 }
 

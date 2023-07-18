@@ -43,6 +43,7 @@ public:
     ComPtr<ID3D12RootSignature>          pIRootSignature;
     ComPtr<ID3D12PipelineState>          pIPipelineState1;
     ComPtr<ID3D12PipelineState>          pIPipelineState2;
+    ComPtr<ID3D12PipelineState>          pIPipelineState3;
     ComPtr<ID3D12Fence>                  pIFence;
     ComPtr<ID3D12Resource>				 pIDepthStencilBuffer;
 
@@ -284,6 +285,9 @@ Engine::Engine(HWND hwnd)
     ComPtr<ID3DBlob> vertexShader2;
     ComPtr<ID3DBlob> pixelShader2;
 
+    ComPtr<ID3DBlob> vertexShader3;
+    ComPtr<ID3DBlob> pixelShader3;
+
     UINT compileFlags = D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
 
     TCHAR pszShaderFileName1[] = _T("D:\\OneDrive - University of Exeter\\MSc Advanced Computer Science\\Code Dir\\ACS Final Project\\FinalPorject\\ACS Final Project\\ACS Final Project\\Shaders\\texture_cube.hlsl");
@@ -298,6 +302,12 @@ Engine::Engine(HWND hwnd)
 
     D3DCompileFromFile(pszShaderFileName2, nullptr, nullptr, "PSMain", "ps_5_0", compileFlags, 0, &pixelShader2, nullptr);
 
+    TCHAR pszShaderFileName3[] = _T("D:\\OneDrive - University of Exeter\\MSc Advanced Computer Science\\Code Dir\\ACS Final Project\\FinalPorject\\ACS Final Project\\ACS Final Project\\Shaders\\skybox.hlsl");
+
+    D3DCompileFromFile(pszShaderFileName3, nullptr, nullptr, "VSMain", "vs_5_0", compileFlags, 0, &vertexShader3, nullptr);
+
+    D3DCompileFromFile(pszShaderFileName3, nullptr, nullptr, "PSMain", "ps_5_0", compileFlags, 0, &pixelShader3, nullptr);
+
 
     //填充用于描述顶点输入布局的结构体
     D3D12_INPUT_ELEMENT_DESC inputElementDescs1[] =
@@ -311,6 +321,11 @@ Engine::Engine(HWND hwnd)
     {
         { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
         { "COLOR", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 }
+    };
+
+    D3D12_INPUT_ELEMENT_DESC stIALayoutSkybox[] =
+    {
+        { "POSITION", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 }
     };
 
     CD3DX12_RASTERIZER_DESC rasterizerDesc = {};//光栅化器描述结构体
@@ -355,6 +370,25 @@ Engine::Engine(HWND hwnd)
     psoDesc2.SampleDesc.Count = 1;
     pID3DDevice->CreateGraphicsPipelineState(&psoDesc2, IID_PPV_ARGS(&pIPipelineState2));
 
+    //创建渲染管线状态对象接口3
+    D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc3 = {};
+    psoDesc3.InputLayout = { stIALayoutSkybox, _countof(stIALayoutSkybox) };//_countof宏，方便获取静态数组元素个数
+    psoDesc3.pRootSignature = pIRootSignature.Get();
+    psoDesc3.VS = CD3DX12_SHADER_BYTECODE(vertexShader3.Get());
+    psoDesc3.PS = CD3DX12_SHADER_BYTECODE(pixelShader3.Get());
+    psoDesc3.RasterizerState = rasterizerDesc;
+    psoDesc3.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
+    psoDesc3.DepthStencilState.StencilEnable = FALSE;
+    psoDesc3.DepthStencilState.DepthEnable = FALSE;
+    psoDesc3.DepthStencilState.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ALL;
+    psoDesc3.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_LESS;
+    psoDesc3.SampleMask = UINT_MAX;
+    psoDesc3.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+    psoDesc3.NumRenderTargets = 1;
+    psoDesc3.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
+    psoDesc3.SampleDesc.Count = 1;
+    pID3DDevice->CreateGraphicsPipelineState(&psoDesc3, IID_PPV_ARGS(&pIPipelineState3));
+
     //声明和填充采样器堆结构体
     D3D12_DESCRIPTOR_HEAP_DESC stSamplerHeapDesc = {};
     stSamplerHeapDesc.NumDescriptors = nSampleMaxCnt;
@@ -370,12 +404,12 @@ Engine::Engine(HWND hwnd)
     CD3DX12_CPU_DESCRIPTOR_HANDLE hSamplerHeap(pISamplerDescriptorHeap->GetCPUDescriptorHandleForHeapStart());
 
     D3D12_SAMPLER_DESC stSamplerDesc = {};
-    stSamplerDesc.Filter = D3D12_FILTER_ANISOTROPIC;
+    stSamplerDesc.Filter = D3D12_FILTER_MIN_MAG_MIP_LINEAR;
     stSamplerDesc.MinLOD = 0;
     stSamplerDesc.MaxLOD = D3D12_FLOAT32_MAX;
     stSamplerDesc.MipLODBias = 0.0f;
     stSamplerDesc.MaxAnisotropy = D3D12_MAX_MAXANISOTROPY;
-    stSamplerDesc.ComparisonFunc = D3D12_COMPARISON_FUNC_ALWAYS;
+    stSamplerDesc.ComparisonFunc = D3D12_COMPARISON_FUNC_NEVER;
 
     // Sampler 1
     stSamplerDesc.BorderColor[0] = 0.0f;
