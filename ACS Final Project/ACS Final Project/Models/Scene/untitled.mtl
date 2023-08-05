@@ -1,0 +1,125 @@
+# Blender MTL File: 'untitled.blend'
+# Material Count: 11
+
+newmtl Floor
+Ns 900.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.105885 0.108964 0.154263
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Bump D:\OneDrive - University of Exeter\MSc Advanced Computer Science\Code Dir\ACS Final Project\FinalPorject\ACS Final Project\ACS Final Project\Models\Scene\textures\Floor_normal.png
+
+newmtl Light
+Ns 143.999983
+Ka 1.000000 1.000000 1.000000
+Kd 1.000000 1.000000 0.800000
+Ks 0.500000 0.500000 0.500000
+Ke 1.000000 1.000000 1.000000
+Ni 1.450000
+d 1.000000
+illum 2
+
+newmtl Metal01
+Ns 225.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Bump D:\OneDrive - University of Exeter\MSc Advanced Computer Science\Code Dir\ACS Final Project\FinalPorject\ACS Final Project\ACS Final Project\Models\Scene\textures\Metal02_normal.png
+map_Kd D:\OneDrive - University of Exeter\MSc Advanced Computer Science\Code Dir\ACS Final Project\FinalPorject\ACS Final Project\ACS Final Project\Models\Scene\textures\Metal01_baseColor.jpeg
+
+newmtl Metal02
+Ns 225.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Bump D:\OneDrive - University of Exeter\MSc Advanced Computer Science\Code Dir\ACS Final Project\FinalPorject\ACS Final Project\ACS Final Project\Models\Scene\textures\Metal02_normal.png
+map_Kd D:\OneDrive - University of Exeter\MSc Advanced Computer Science\Code Dir\ACS Final Project\FinalPorject\ACS Final Project\ACS Final Project\Models\Scene\textures\Metal02_baseColor.jpeg
+
+newmtl Metal03
+Ns 225.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+
+newmtl Metal04
+Ns 225.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Bump D:\OneDrive - University of Exeter\MSc Advanced Computer Science\Code Dir\ACS Final Project\FinalPorject\ACS Final Project\ACS Final Project\Models\Scene\textures\Metal02_normal.png
+map_Kd D:\OneDrive - University of Exeter\MSc Advanced Computer Science\Code Dir\ACS Final Project\FinalPorject\ACS Final Project\ACS Final Project\Models\Scene\textures\Metal04_baseColor.jpeg
+
+newmtl Metal05
+Ns 225.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Bump D:\OneDrive - University of Exeter\MSc Advanced Computer Science\Code Dir\ACS Final Project\FinalPorject\ACS Final Project\ACS Final Project\Models\Scene\textures\Metal02_normal.png
+map_Kd D:\OneDrive - University of Exeter\MSc Advanced Computer Science\Code Dir\ACS Final Project\FinalPorject\ACS Final Project\ACS Final Project\Models\Scene\textures\Metal05_baseColor.jpeg
+
+newmtl Note
+Ns 525.063497
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd D:\OneDrive - University of Exeter\MSc Advanced Computer Science\Code Dir\ACS Final Project\FinalPorject\ACS Final Project\ACS Final Project\Models\Scene\textures\Note_baseColor.jpeg
+map_Ke D:\OneDrive - University of Exeter\MSc Advanced Computer Science\Code Dir\ACS Final Project\FinalPorject\ACS Final Project\ACS Final Project\Models\Scene\textures\Note_baseColor.jpeg
+
+newmtl Tiles
+Ns 508.437056
+Ka 1.000000 1.000000 1.000000
+Kd 0.014035 0.014948 0.020743
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Bump D:\OneDrive - University of Exeter\MSc Advanced Computer Science\Code Dir\ACS Final Project\FinalPorject\ACS Final Project\ACS Final Project\Models\Scene\textures\Tiles_normal.png
+
+newmtl Welcome_Sign
+Ns 696.356123
+Ka 0.644573 0.644573 0.644573
+Kd 0.800000 0.800000 0.800000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 3
+map_Ke D:\OneDrive - University of Exeter\MSc Advanced Computer Science\Code Dir\ACS Final Project\FinalPorject\ACS Final Project\ACS Final Project\Models\Scene\textures\Welcome_Sign_baseColor.jpeg
+
+newmtl WindowFrames
+Ns 336.459115
+Ka 0.540954 0.540954 0.540954
+Kd 0.157668 0.150340 0.150340
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 3

@@ -51,7 +51,7 @@ inline void Camera::InitCamera(Engine engine, XMFLOAT4 eye_pos, XMFLOAT4 focus_p
 	UpDirection = XMVectorSet(up_dir.x, up_dir.y, up_dir.z, up_dir.w);//眼睛(camera)上方向方向矢量
 
 	ViewMatrix = XMMatrixLookAtLH(CameraPosition, FocusPosition, UpDirection);
-	ProjectionMatrix = XMMatrixPerspectiveFovLH(XM_PIDIV4, (FLOAT)GlobalEngine.iWidth / (FLOAT)GlobalEngine.iHeight, 0.1f, 1000.0f);
+	ProjectionMatrix = XMMatrixPerspectiveFovLH(XM_PIDIV4, (FLOAT)GlobalEngine.iWidth / (FLOAT)GlobalEngine.iHeight, 0.1f, 200000.0f);
 
 	mPosition = XMFLOAT3(eye_pos.x, eye_pos.y, eye_pos.z);
 	mLook = XMFLOAT3(focus_pos.x - eye_pos.x, focus_pos.y - eye_pos.y, focus_pos.z - eye_pos.z);

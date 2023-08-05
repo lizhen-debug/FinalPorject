@@ -42,6 +42,12 @@
     <ClInclude Include="Light.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="ComplexModel.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Material.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp">

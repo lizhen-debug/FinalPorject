@@ -1,5 +1,6 @@
 #pragma once
 #include "Model.h"
+#include "ComplexModel.h"
 #include "Camera.h"
 #include "Light.h"
 
@@ -15,12 +16,14 @@ public:
 	Camera camera;
 	Light light;
 	vector<Model> RenderList = {};
+	vector<ComplexModel> CMRenderList = {};
 
 private:
 	Engine GlobalEngine;
 
 	
 	void AppendTargetToRenderList(Model target);
+	void AppendTargetToRenderList(ComplexModel target);
 
 	UINT nFrame = 0;
 	
@@ -44,38 +47,58 @@ inline void Scene::AppendTargetToRenderList(Model target)
 	RenderList.push_back(target);
 }
 
+inline void Scene::AppendTargetToRenderList(ComplexModel target)
+{
+	CMRenderList.push_back(target);
+}
+
 inline void Scene::ConstructScene()
 {
-	camera.InitCamera(GlobalEngine, { 0.0f, 50.0f, -100.0f, 0.0f }, { 0.0f, 0.0f, 0.0f, 0.0f }, { 0.0f, 1.0f, 0.0f, 0.0f });
+	camera.InitCamera(GlobalEngine, { 0.0f, 90.0f, -150.0f, 0.0f }, { 0.0f, 0.0f, 0.0f, 0.0f }, { 0.0f, 1.0f, 0.0f, 0.0f });
 	light.InitLight();
 
-	const char* MeshFileName = "D:\\OneDrive - University of Exeter\\MSc Advanced Computer Science\\Code Dir\\ACS Final Project\\FinalPorject\\ACS Final Project\\ACS Final Project\\Models\\kuroro.obj";
-	Mesh mesh(GlobalEngine);
-	mesh.LoadMesh(MeshFileName);
-	TCHAR TextureFileName[] = _T("D:\\OneDrive - University of Exeter\\MSc Advanced Computer Science\\Code Dir\\ACS Final Project\\FinalPorject\\ACS Final Project\\ACS Final Project\\Models\\Kuroro_UV\\diffuse.png");
-	Texture tex(GlobalEngine);
-	tex.LoadTexture(TextureFileName, D3D12_SRV_DIMENSION_TEXTURE2D);
 
+
+
+	const char* MeshFileNameTest = "D:\\OneDrive - University of Exeter\\MSc Advanced Computer Science\\Code Dir\\ACS Final Project\\FinalPorject\\ACS Final Project\\ACS Final Project\\Models\\Scene\\test.obj";
+	//const char* MeshFileNameTest = "D:\\OneDrive - University of Exeter\\MSc Advanced Computer Science\\Code Dir\\ACS Final Project\\FinalPorject\\ACS Final Project\\ACS Final Project\\Models\\kuroro.obj";
+
+	ComplexModel complex_model(GlobalEngine);
+	complex_model.InitComplexModel({ 0,0 ,0 }, { 0,0,0 }, { 10,10,10 }, MeshFileNameTest);
+	AppendTargetToRenderList(complex_model);
+
+
+
+	const char* MeshFileName1 = "D:\\OneDrive - University of Exeter\\MSc Advanced Computer Science\\Code Dir\\ACS Final Project\\FinalPorject\\ACS Final Project\\ACS Final Project\\Models\\kuroro.obj";
+	Mesh mesh1(GlobalEngine);
+	mesh1.LoadMesh(MeshFileName1);
+	TCHAR TextureFileName1[] = _T("D:\\OneDrive - University of Exeter\\MSc Advanced Computer Science\\Code Dir\\ACS Final Project\\FinalPorject\\ACS Final Project\\ACS Final Project\\Models\\Kuroro_UV\\diffuse.png");
+	Texture tex1(GlobalEngine);
+	tex1.LoadTexture(TextureFileName1, D3D12_SRV_DIMENSION_TEXTURE2D);
+	
 	Model model1(GlobalEngine);
-	model1.InitModel({ 0,-10 ,0 }, { 0,0,0 }, { 1,1,1 }, mesh, tex, IndexedInstanced, D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	model1.InitModel({ 0,30 ,0 }, { 0,0,0 }, { 1,1,1 }, mesh1, tex1, IndexedInstanced, D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-	//const char* MeshFileName2 = "D:\\OneDrive - University of Exeter\\MSc Advanced Computer Science\\Code Dir\\ACS Final Project\\FinalPorject\\ACS Final Project\\ACS Final Project\\Models\\Scene\\scene.obj";
+
+	//const char* MeshFileName2 = "D:\\OneDrive - University of Exeter\\MSc Advanced Computer Science\\Code Dir\\ACS Final Project\\FinalPorject\\ACS Final Project\\ACS Final Project\\Models\\Scene\\showcase.obj";
 	//Mesh mesh2(GlobalEngine);
 	//mesh2.LoadMesh(MeshFileName2);
-	//TCHAR TextureFileName2[] = _T("D:\\OneDrive - University of Exeter\\MSc Advanced Computer Science\\Code Dir\\ACS Final Project\\FinalPorject\\ACS Final Project\\ACS Final Project\\Models\\Scene\\scene.png");
+	//TCHAR TextureFileName2[] = _T("D:\\OneDrive - University of Exeter\\MSc Advanced Computer Science\\Code Dir\\ACS Final Project\\FinalPorject\\ACS Final Project\\ACS Final Project\\Models\\Scene\\diffuse.png");
 	//Texture tex2(GlobalEngine);
 	//tex2.LoadTexture(TextureFileName2, D3D12_SRV_DIMENSION_TEXTURE2D);
-	//Model model2(GlobalEngine);
-	//model2.InitModel({ 0,0 ,0 }, { 0,0,0 }, { 1,1,1 }, mesh2, tex2, IndexedInstanced, D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-	//AppendTargetToRenderList(model2);
 
+	//Model model2(GlobalEngine);
+	//model2.InitModel({ 0,0 ,0 }, { 0,0,0 }, { 60,60,60 }, mesh2, tex2, IndexedInstanced, D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	
+	
 	Mesh coordinate_axis(GlobalEngine);
 	coordinate_axis.LoadDefaultMesh();
+	
 	Model axis(GlobalEngine);
 	axis.InitDefaultModel({ 0,0,0 }, { 0,0,0 }, { 1000,1000,1000 }, coordinate_axis, Instanced, D3D_PRIMITIVE_TOPOLOGY_LINELIST);
 
 	Mesh skyBoxMesh(GlobalEngine);
-	skyBoxMesh.LoadSkyBoxMesh();
+	//skyBoxMesh.LoadSkyBoxMesh();
 	stImageInfo skyBoxTexArray[6] = {};
 	TCHAR skyBoxRight[] = _T("D:\\OneDrive - University of Exeter\\MSc Advanced Computer Science\\Code Dir\\ACS Final Project\\FinalPorject\\ACS Final Project\\ACS Final Project\\Textures\\skybox\\style1\\right.jpg");
 	skyBoxTexArray[0].m_pszTextureFile = skyBoxRight;
@@ -90,16 +113,15 @@ inline void Scene::ConstructScene()
 	TCHAR skyBoxBack[] = _T("D:\\OneDrive - University of Exeter\\MSc Advanced Computer Science\\Code Dir\\ACS Final Project\\FinalPorject\\ACS Final Project\\ACS Final Project\\Textures\\skybox\\style1\\back.jpg");
 	skyBoxTexArray[5].m_pszTextureFile = skyBoxBack;
 	Texture skyBoxTex(GlobalEngine);
-	skyBoxTex.LoadTextureArray(skyBoxTexArray, 6, D3D12_SRV_DIMENSION_TEXTURECUBE);
+	//skyBoxTex.LoadTextureArray(skyBoxTexArray, 6, D3D12_SRV_DIMENSION_TEXTURECUBE);
+	
 	Model skyBoxModel(GlobalEngine);
-	skyBoxModel.InitModel({ 0,0,0 }, { 0,0,0 }, { 1,1,1 }, skyBoxMesh, skyBoxTex, Skybox, D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
-
-	AppendTargetToRenderList(skyBoxModel);
-	AppendTargetToRenderList(axis);
+	//skyBoxModel.InitModel({ 0,0,0 }, { 0,0,0 }, { 1,1,1 }, skyBoxMesh, skyBoxTex, Skybox, D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+	
+	//AppendTargetToRenderList(skyBoxModel);
 	AppendTargetToRenderList(model1);
-	
-	
-	
+	//AppendTargetToRenderList(model2);
+	AppendTargetToRenderList(axis);
 }
 
 inline void Scene::RenderScene()
@@ -133,6 +155,11 @@ inline void Scene::RenderScene()
 	{
 		RenderList[i].RenderModel(camera, light);
 	}
+
+	for (int i = 0; i < CMRenderList.size(); i++)
+	{
+		CMRenderList[i].RenderModel(camera, light);
+	}
 	
 	//又一个资源屏障，用于确定渲染已经结束可以提交画面去显示了
 	GlobalEngine.stEndResBarrier.Transition.pResource = GlobalEngine.pIARenderTargets[GlobalEngine.nFrameIndex].Get();
@@ -149,7 +176,7 @@ inline void Scene::RenderScene()
 	const UINT64 fence = GlobalEngine.n64FenceValue;
 	GlobalEngine.pICommandQueue->Signal(GlobalEngine.pIFence.Get(), fence);
 	GlobalEngine.n64FenceValue++;
-
+	
 	// 看命令有没有真正执行到围栏标记的这里，没有就利用事件去等待，注意使用的是命令队列对象的指针
 	if (GlobalEngine.pIFence->GetCompletedValue() < fence)
 	{

@@ -97,6 +97,7 @@ inline void Mesh::LoadMesh(const char* MeshFilePath)
                 mesh_index.push_back(face->mIndices[0U]);
                 mesh_index.push_back(face->mIndices[1U]);
                 mesh_index.push_back(face->mIndices[2U]);
+                
             }
         }
     }

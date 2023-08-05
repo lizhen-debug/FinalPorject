@@ -7,7 +7,7 @@ static POINT prevMousePos = {};  // 用于存储上一次的鼠标位置
 
 void OnKeyboardInput()
 {
-    const float dt = 0.01f;
+    const float dt = 0.05f;
 
     if (GetAsyncKeyState('W') & 0x8000)
         scene_object->camera.Walk(10.0f * dt);
@@ -20,6 +20,12 @@ void OnKeyboardInput()
 
     if (GetAsyncKeyState('D') & 0x8000)
         scene_object->camera.Strafe(10.0f * dt);
+
+    //if (GetAsyncKeyState(VK_SPACE) & 0x8000)
+    //{
+    //    ++nCurrentSamplerNO;
+    //    nCurrentSamplerNO %= nSampleMaxCnt;
+    //}
 }
 
 //过程函数
@@ -227,7 +233,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 
         OnKeyboardInput();
 
-        scene.RenderList[2].RotationY(0.004);
+        scene.RenderList[0].RotationY(0.004);
         scene.RenderScene();
 
     }

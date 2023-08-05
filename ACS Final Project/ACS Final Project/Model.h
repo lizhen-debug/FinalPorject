@@ -134,6 +134,17 @@ inline void Model::InitModel(XMFLOAT3 position, XMFLOAT3 rotation, XMFLOAT3 scal
 
 	GlobalEngine.pID3DDevice->CreateConstantBufferView(&cbvDesc, cbvSrvHandle);
 
+	const UINT64 fence = GlobalEngine.n64FenceValue;
+	GlobalEngine.pICommandQueue->Signal(GlobalEngine.pIFence.Get(), fence);
+	GlobalEngine.n64FenceValue++;
+	//---------------------------------------------------------------------------------------------
+	// 看命令有没有真正执行到围栏标记的这里，没有就利用事件去等待，注意使用的是命令队列对象的指针
+	if (GlobalEngine.pIFence->GetCompletedValue() < fence)
+	{
+		GlobalEngine.pIFence->SetEventOnCompletion(fence, GlobalEngine.hFenceEvent);
+		WaitForSingleObject(GlobalEngine.hFenceEvent, INFINITE);
+	}
+
 }
 
 inline void Model::InitDefaultModel(XMFLOAT3 position, XMFLOAT3 rotation, XMFLOAT3 scale, Mesh used_mesh, RenderMethod render_method, D3D_PRIMITIVE_TOPOLOGY toplogy)

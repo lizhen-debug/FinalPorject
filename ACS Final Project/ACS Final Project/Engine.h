@@ -44,6 +44,7 @@ public:
     ComPtr<ID3D12PipelineState>          pIPipelineState1;
     ComPtr<ID3D12PipelineState>          pIPipelineState2;
     ComPtr<ID3D12PipelineState>          pIPipelineState3;
+    ComPtr<ID3D12PipelineState>          pIPipelineState4;
     ComPtr<ID3D12Fence>                  pIFence;
     ComPtr<ID3D12Resource>				 pIDepthStencilBuffer;
 
@@ -288,6 +289,9 @@ Engine::Engine(HWND hwnd)
     ComPtr<ID3DBlob> vertexShader3;
     ComPtr<ID3DBlob> pixelShader3;
 
+    ComPtr<ID3DBlob> vertexShader4;
+    ComPtr<ID3DBlob> pixelShader4;
+
     UINT compileFlags = D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
 
     TCHAR pszShaderFileName1[] = _T("D:\\OneDrive - University of Exeter\\MSc Advanced Computer Science\\Code Dir\\ACS Final Project\\FinalPorject\\ACS Final Project\\ACS Final Project\\Shaders\\texture_cube.hlsl");
@@ -308,6 +312,12 @@ Engine::Engine(HWND hwnd)
 
     D3DCompileFromFile(pszShaderFileName3, nullptr, nullptr, "PSMain", "ps_5_0", compileFlags, 0, &pixelShader3, nullptr);
 
+    TCHAR pszShaderFileName4[] = _T("D:\\OneDrive - University of Exeter\\MSc Advanced Computer Science\\Code Dir\\ACS Final Project\\FinalPorject\\ACS Final Project\\ACS Final Project\\Shaders\\complex.hlsl");
+
+    D3DCompileFromFile(pszShaderFileName4, nullptr, nullptr, "VSMain", "vs_5_0", compileFlags, 0, &vertexShader4, nullptr);
+
+    D3DCompileFromFile(pszShaderFileName4, nullptr, nullptr, "PSMain", "ps_5_0", compileFlags, 0, &pixelShader4, nullptr);
+
 
     //填充用于描述顶点输入布局的结构体
     D3D12_INPUT_ELEMENT_DESC inputElementDescs1[] =
@@ -326,6 +336,14 @@ Engine::Engine(HWND hwnd)
     D3D12_INPUT_ELEMENT_DESC stIALayoutSkybox[] =
     {
         { "POSITION", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 }
+    };
+
+    D3D12_INPUT_ELEMENT_DESC stComplexModelVertex[] =
+    {
+        { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+        { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+        { "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 20, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+        { "TANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 32, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 }
     };
 
     CD3DX12_RASTERIZER_DESC rasterizerDesc = {};//光栅化器描述结构体
@@ -388,6 +406,25 @@ Engine::Engine(HWND hwnd)
     psoDesc3.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
     psoDesc3.SampleDesc.Count = 1;
     pID3DDevice->CreateGraphicsPipelineState(&psoDesc3, IID_PPV_ARGS(&pIPipelineState3));
+
+    //创建渲染管线状态对象接口4
+    D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc4 = {};
+    psoDesc4.InputLayout = { stComplexModelVertex, _countof(stComplexModelVertex) };//_countof宏，方便获取静态数组元素个数
+    psoDesc4.pRootSignature = pIRootSignature.Get();
+    psoDesc4.VS = CD3DX12_SHADER_BYTECODE(vertexShader4.Get());
+    psoDesc4.PS = CD3DX12_SHADER_BYTECODE(pixelShader4.Get());
+    psoDesc4.RasterizerState = rasterizerDesc;
+    psoDesc4.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
+    psoDesc4.DepthStencilState.StencilEnable = FALSE;
+    psoDesc4.DepthStencilState.DepthEnable = TRUE;			//打开深度缓冲				
+    psoDesc4.DepthStencilState.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ALL;//启用深度缓存写入功能
+    psoDesc4.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_LESS;     //深度测试函数（该值为普通的深度测试，即较小值写入）
+    psoDesc4.SampleMask = UINT_MAX;
+    psoDesc4.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+    psoDesc4.NumRenderTargets = 1;
+    psoDesc4.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
+    psoDesc4.SampleDesc.Count = 1;
+    pID3DDevice->CreateGraphicsPipelineState(&psoDesc4, IID_PPV_ARGS(&pIPipelineState4));
 
     //声明和填充采样器堆结构体
     D3D12_DESCRIPTOR_HEAP_DESC stSamplerHeapDesc = {};
