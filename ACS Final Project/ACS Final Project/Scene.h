@@ -72,7 +72,7 @@ inline void Scene::ConstructScene()
 	const char* MeshFileName1 = "D:\\OneDrive - University of Exeter\\MSc Advanced Computer Science\\Code Dir\\ACS Final Project\\FinalPorject\\ACS Final Project\\ACS Final Project\\Models\\kuroro.obj";
 	Mesh mesh1(GlobalEngine);
 	mesh1.LoadMesh(MeshFileName1);
-	TCHAR TextureFileName1[] = _T("D:\\OneDrive - University of Exeter\\MSc Advanced Computer Science\\Code Dir\\ACS Final Project\\FinalPorject\\ACS Final Project\\ACS Final Project\\Models\\Kuroro_UV\\diffuse.png");
+	string TextureFileName1 = "D:\\OneDrive - University of Exeter\\MSc Advanced Computer Science\\Code Dir\\ACS Final Project\\FinalPorject\\ACS Final Project\\ACS Final Project\\Models\\Kuroro_UV\\diffuse.png";
 	Texture tex1(GlobalEngine);
 	tex1.LoadTexture(TextureFileName1, D3D12_SRV_DIMENSION_TEXTURE2D);
 	
@@ -83,7 +83,7 @@ inline void Scene::ConstructScene()
 	//const char* MeshFileName2 = "D:\\OneDrive - University of Exeter\\MSc Advanced Computer Science\\Code Dir\\ACS Final Project\\FinalPorject\\ACS Final Project\\ACS Final Project\\Models\\Scene\\showcase.obj";
 	//Mesh mesh2(GlobalEngine);
 	//mesh2.LoadMesh(MeshFileName2);
-	//TCHAR TextureFileName2[] = _T("D:\\OneDrive - University of Exeter\\MSc Advanced Computer Science\\Code Dir\\ACS Final Project\\FinalPorject\\ACS Final Project\\ACS Final Project\\Models\\Scene\\diffuse.png");
+	//string TextureFileName2 = ("D:\\OneDrive - University of Exeter\\MSc Advanced Computer Science\\Code Dir\\ACS Final Project\\FinalPorject\\ACS Final Project\\ACS Final Project\\Models\\Scene\\diffuse.png");
 	//Texture tex2(GlobalEngine);
 	//tex2.LoadTexture(TextureFileName2, D3D12_SRV_DIMENSION_TEXTURE2D);
 
@@ -100,17 +100,17 @@ inline void Scene::ConstructScene()
 	//Mesh skyBoxMesh(GlobalEngine);
 	//skyBoxMesh.LoadSkyBoxMesh();
 	stImageInfo skyBoxTexArray[6] = {};
-	TCHAR skyBoxRight[] = _T("D:\\OneDrive - University of Exeter\\MSc Advanced Computer Science\\Code Dir\\ACS Final Project\\FinalPorject\\ACS Final Project\\ACS Final Project\\Textures\\skybox\\style1\\right.jpg");
+	string skyBoxRight = ("D:\\OneDrive - University of Exeter\\MSc Advanced Computer Science\\Code Dir\\ACS Final Project\\FinalPorject\\ACS Final Project\\ACS Final Project\\Textures\\skybox\\style1\\right.jpg");
 	skyBoxTexArray[0].m_pszTextureFile = skyBoxRight;
-	TCHAR skyBoxLeft[] = _T("D:\\OneDrive - University of Exeter\\MSc Advanced Computer Science\\Code Dir\\ACS Final Project\\FinalPorject\\ACS Final Project\\ACS Final Project\\Textures\\skybox\\style1\\left.jpg");
+	string skyBoxLeft = ("D:\\OneDrive - University of Exeter\\MSc Advanced Computer Science\\Code Dir\\ACS Final Project\\FinalPorject\\ACS Final Project\\ACS Final Project\\Textures\\skybox\\style1\\left.jpg");
 	skyBoxTexArray[1].m_pszTextureFile = skyBoxLeft;
-	TCHAR skyBoxTop[] = _T("D:\\OneDrive - University of Exeter\\MSc Advanced Computer Science\\Code Dir\\ACS Final Project\\FinalPorject\\ACS Final Project\\ACS Final Project\\Textures\\skybox\\style1\\top.jpg");
+	string skyBoxTop = ("D:\\OneDrive - University of Exeter\\MSc Advanced Computer Science\\Code Dir\\ACS Final Project\\FinalPorject\\ACS Final Project\\ACS Final Project\\Textures\\skybox\\style1\\top.jpg");
 	skyBoxTexArray[2].m_pszTextureFile = skyBoxTop;
-	TCHAR skyBoxBottom[] = _T("D:\\OneDrive - University of Exeter\\MSc Advanced Computer Science\\Code Dir\\ACS Final Project\\FinalPorject\\ACS Final Project\\ACS Final Project\\Textures\\skybox\\style1\\bottom.jpg");
+	string skyBoxBottom = ("D:\\OneDrive - University of Exeter\\MSc Advanced Computer Science\\Code Dir\\ACS Final Project\\FinalPorject\\ACS Final Project\\ACS Final Project\\Textures\\skybox\\style1\\bottom.jpg");
 	skyBoxTexArray[3].m_pszTextureFile = skyBoxBottom;
-	TCHAR skyBoxFront[] = _T("D:\\OneDrive - University of Exeter\\MSc Advanced Computer Science\\Code Dir\\ACS Final Project\\FinalPorject\\ACS Final Project\\ACS Final Project\\Textures\\skybox\\style1\\front.jpg");
+	string skyBoxFront = ("D:\\OneDrive - University of Exeter\\MSc Advanced Computer Science\\Code Dir\\ACS Final Project\\FinalPorject\\ACS Final Project\\ACS Final Project\\Textures\\skybox\\style1\\front.jpg");
 	skyBoxTexArray[4].m_pszTextureFile = skyBoxFront;
-	TCHAR skyBoxBack[] = _T("D:\\OneDrive - University of Exeter\\MSc Advanced Computer Science\\Code Dir\\ACS Final Project\\FinalPorject\\ACS Final Project\\ACS Final Project\\Textures\\skybox\\style1\\back.jpg");
+	string skyBoxBack = ("D:\\OneDrive - University of Exeter\\MSc Advanced Computer Science\\Code Dir\\ACS Final Project\\FinalPorject\\ACS Final Project\\ACS Final Project\\Textures\\skybox\\style1\\back.jpg");
 	skyBoxTexArray[5].m_pszTextureFile = skyBoxBack;
 	//Texture skyBoxTex(GlobalEngine);
 	//skyBoxTex.LoadTextureArray(skyBoxTexArray, 6, D3D12_SRV_DIMENSION_TEXTURECUBE);

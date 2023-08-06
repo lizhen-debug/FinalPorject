@@ -55,6 +55,8 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.450000
 d 1.000000
 illum 2
+map_Kd D:\OneDrive - University of Exeter\MSc Advanced Computer Science\Code Dir\ACS Final Project\FinalPorject\ACS Final Project\ACS Final Project\Models\Scene\textures\Metal03_baseColor.jpeg
+map_Rough D:\OneDrive - University of Exeter\MSc Advanced Computer Science\Code Dir\ACS Final Project\FinalPorject\ACS Final Project\ACS Final Project\Models\Scene\textures\Metal03_metallicRoughness.png
 
 newmtl Metal04
 Ns 225.000000

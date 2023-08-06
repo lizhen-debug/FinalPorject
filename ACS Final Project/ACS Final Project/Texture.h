@@ -125,7 +125,7 @@ DXGI_FORMAT GetDXGIFormatFromPixelFormat(const GUID* pPixelFormat)
 
 struct stImageInfo
 {
-    TCHAR*          m_pszTextureFile;
+    string          m_pszTextureFile;
     DXGI_FORMAT     m_emTextureFormat;
     UINT            m_nTextureW;
     UINT            m_nTextureH;
@@ -134,12 +134,24 @@ struct stImageInfo
     size_t          m_szBufferSize;
 };
 
+TCHAR* ConvertStringToTCHAR(const string& str) {
+    int length = MultiByteToWideChar(CP_UTF8, 0, str.c_str(), -1, nullptr, 0);
+    if (length == 0) {
+        // 转换失败
+        return nullptr;
+    }
+
+    TCHAR* tcharString = new TCHAR[length];
+    MultiByteToWideChar(CP_UTF8, 0, str.c_str(), -1, tcharString, length);
+    return tcharString;
+}
+
 class Texture
 {
 public:
 	Texture();
 	Texture(Engine engine);
-    void LoadTexture(TCHAR TexcuteFilePath[], D3D12_SRV_DIMENSION type);
+    void LoadTexture(string TexcuteFilePath, D3D12_SRV_DIMENSION type);
     void LoadTextureArray(stImageInfo texArray[], UINT texNum, D3D12_SRV_DIMENSION type);
 	~Texture();
     
@@ -183,7 +195,7 @@ Texture::Texture(Engine engine)
 	GlobalEngine = engine;
 }
 
-inline void Texture::LoadTexture(TCHAR TexcuteFilePath[], D3D12_SRV_DIMENSION type)
+inline void Texture::LoadTexture(string TexcuteFilePath, D3D12_SRV_DIMENSION type)
 {
     /*
     //----------------------------------------------------------------------------------
@@ -411,7 +423,7 @@ inline void Texture::LoadTexture(TCHAR TexcuteFilePath[], D3D12_SRV_DIMENSION ty
 inline void Texture::LoadTextureArray(stImageInfo texArray[], UINT texNum, D3D12_SRV_DIMENSION type)
 {
     emTextureType = type;
-    nTextureArrayNum = texNum;
+    nTextureArrayNum= texNum;
 
     for (int i = 0; i < texNum; i++)
     {
@@ -576,7 +588,7 @@ Texture::~Texture()
 
 inline void Texture::WICLoadImageFunction(stImageInfo* image_info)
 {
-    if (image_info->m_pszTextureFile)
+    if (image_info->m_pszTextureFile!="")
     {
         //----------------------------------------------------------------------------------
         //使用纯COM方式创建WIC类厂对象，也是调用WIC第一步要做的事情
@@ -584,11 +596,11 @@ inline void Texture::WICLoadImageFunction(stImageInfo* image_info)
 
         //使用WIC类厂对象接口加载纹理图片，并得到一个WIC解码器对象接口，图片信息就在这个接口代表的对象中了
         pIWICFactory->CreateDecoderFromFilename(
-            image_info->m_pszTextureFile,    // 文件名
-            NULL,                            // 不指定解码器，使用默认
-            GENERIC_READ,                    // 访问权限
-            WICDecodeMetadataCacheOnDemand,  // 若需要就缓冲数据 
-            &pIWICDecoder                    // 解码器对象
+            ConvertStringToTCHAR(image_info->m_pszTextureFile),     // 文件名
+            NULL,                                                   // 不指定解码器，使用默认
+            GENERIC_READ,                                           // 访问权限
+            WICDecodeMetadataCacheOnDemand,                         // 若需要就缓冲数据 
+            &pIWICDecoder                                           // 解码器对象
         );
 
         //获取第一帧图片，解析出的通常是位图

@@ -82,6 +82,8 @@ private:
 
 	Texture texture;
 	Material* mesh_mtl = {};
+
+	set<string> all_tex_res;
 };
 
 ComplexModel::ComplexModel()
@@ -109,21 +111,31 @@ inline void ComplexModel::InitComplexModel(XMFLOAT3 position, XMFLOAT3 rotation,
 	LoadModelMtl(mtl_path, &mtl_map);
 
 
+	for (map<string, Material>::iterator it = mtl_map.begin(); it != mtl_map.end(); it++)
+	{
+		for (map<TextureType, string>::iterator second_it = it->second.res_type_path.begin(); second_it != it->second.res_type_path.end(); second_it++)
+		{
+			all_tex_res.insert(second_it->second);
+		}
+		
+	}
+
 	texture = Texture(GlobalEngine);
-	//TCHAR TextureFileName[] = _T("D:\\OneDrive - University of Exeter\\MSc Advanced Computer Science\\Code Dir\\ACS Final Project\\FinalPorject\\ACS Final Project\\ACS Final Project\\Models\\Scene\\textures\\Metal03_baseColor.jpeg");
-	//texture[i] = Texture(GlobalEngine);
-	//texture[i].LoadTexture(TextureFileName, D3D12_SRV_DIMENSION_TEXTURE2D);
+	string TextureFileName1 = ("D:\\OneDrive - University of Exeter\\MSc Advanced Computer Science\\Code Dir\\ACS Final Project\\FinalPorject\\ACS Final Project\\ACS Final Project\\Models\\Scene\\textures\\Floor_normal.png");
+	string TextureFileName2 = ("D:\\OneDrive - University of Exeter\\MSc Advanced Computer Science\\Code Dir\\ACS Final Project\\FinalPorject\\ACS Final Project\\ACS Final Project\\Models\\Scene\\textures\\Metal05_baseColor.jpeg");
+	string TextureFileName3 = ("D:\\OneDrive - University of Exeter\\MSc Advanced Computer Science\\Code Dir\\ACS Final Project\\FinalPorject\\ACS Final Project\\ACS Final Project\\Models\\Scene\\textures\\Metal03_metallicRoughness.png");
 
-	TCHAR TextureFileName1[] = _T("D:\\OneDrive - University of Exeter\\MSc Advanced Computer Science\\Code Dir\\ACS Final Project\\FinalPorject\\ACS Final Project\\ACS Final Project\\Models\\Scene\\textures\\Metal03_baseColor.jpeg");
-	TCHAR TextureFileName2[] = _T("D:\\OneDrive - University of Exeter\\MSc Advanced Computer Science\\Code Dir\\ACS Final Project\\FinalPorject\\ACS Final Project\\ACS Final Project\\Models\\Scene\\textures\\Metal05_baseColor.jpeg");
-	TCHAR TextureFileName3[] = _T("D:\\OneDrive - University of Exeter\\MSc Advanced Computer Science\\Code Dir\\ACS Final Project\\FinalPorject\\ACS Final Project\\ACS Final Project\\Models\\Scene\\textures\\Metal03_metallicRoughness.png");
-
+	int tex_arr_size = all_tex_res.size();
+	stImageInfo* tex_array = new stImageInfo[tex_arr_size];
 	
-	stImageInfo tex_array[3] = {};
-	tex_array[0].m_pszTextureFile = TextureFileName1;
-	tex_array[1].m_pszTextureFile = TextureFileName2;
-	tex_array[2].m_pszTextureFile = TextureFileName3;
-	texture.LoadTextureArray(tex_array, 3, D3D12_SRV_DIMENSION_TEXTURE2DARRAY);
+	int tex_array_index = 0;
+	for (string value : all_tex_res)
+	{
+		tex_array[tex_array_index].m_pszTextureFile = value;
+		tex_array_index++;
+	}
+
+	texture.LoadTextureArray(tex_array, 8, D3D12_SRV_DIMENSION_TEXTURE2DARRAY);
 
 	
 	stVertexBufferView = new D3D12_VERTEX_BUFFER_VIEW[NumMeshes];
@@ -428,20 +440,6 @@ ComplexModel::~ComplexModel()
 {
 }
 
-
-TCHAR* ConvertStringToTCHAR(const string& str) {
-	int length = MultiByteToWideChar(CP_UTF8, 0, str.c_str(), -1, nullptr, 0);
-	if (length == 0) {
-		// ×ª»»Ê§°Ü
-		return nullptr;
-	}
-
-	TCHAR* tcharString = new TCHAR[length];
-	MultiByteToWideChar(CP_UTF8, 0, str.c_str(), -1, tcharString, length);
-	return tcharString;
-}
-
-
 inline void ComplexModel::LoadModelMtl(const char* ModelMtlPath, map<string, Material> *mtl_map)
 {
 	ifstream file(ModelMtlPath);
@@ -489,24 +487,31 @@ inline void ComplexModel::LoadModelMtl(const char* ModelMtlPath, map<string, Mat
 		}
 		else if (keyword == "map_Kd") {
 			string texturePath;
+			iss >> ws;
 			getline(iss, texturePath);
-			TCHAR* tcharTexturePath = ConvertStringToTCHAR(texturePath);
-			(*mtl_map)[currentMaterial.name].res_type_path.insert(make_pair(map_Kd, tcharTexturePath));
+			(*mtl_map)[currentMaterial.name].res_type_path.insert(make_pair(map_Kd, texturePath));
 			
 		}
 		else if (keyword == "map_Ke") {
 			string texturePath;
+			iss >> ws;
 			getline(iss, texturePath);
-			TCHAR* tcharTexturePath = ConvertStringToTCHAR(texturePath);
-			(*mtl_map)[currentMaterial.name].res_type_path.insert(make_pair(map_Ke, tcharTexturePath));
+			(*mtl_map)[currentMaterial.name].res_type_path.insert(make_pair(map_Ke, texturePath));
 			
 		}
 		else if (keyword == "map_Bump") {
 			string texturePath;
+			iss >> ws;
 			getline(iss, texturePath);
-			TCHAR* tcharTexturePath = ConvertStringToTCHAR(texturePath);
-			(*mtl_map)[currentMaterial.name].res_type_path.insert(make_pair(map_Bump, tcharTexturePath));
+			(*mtl_map)[currentMaterial.name].res_type_path.insert(make_pair(map_Bump, texturePath));
 			
+		}
+		else if (keyword == "map_Rough") {
+			string texturePath;
+			iss >> ws;
+			getline(iss, texturePath);
+			(*mtl_map)[currentMaterial.name].res_type_path.insert(make_pair(map_Rough, texturePath));
+
 		}
 			
 	}

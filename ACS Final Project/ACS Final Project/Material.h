@@ -12,6 +12,7 @@ enum TextureType
     map_Tr,     //透明度纹理贴图（替代形式）
     map_disp,   //位移纹理贴图
     map_refl,   //反射纹理贴图
+    map_Rough,  //粗糙度纹理贴图
 };
 
 class Material
@@ -27,7 +28,7 @@ public:
     float Ni;
     float d;
     int illum;
-    map<TextureType, TCHAR*> res_type_path; // 存储材质的纹理贴图路径
+    map<TextureType, string> res_type_path; // 存储材质的纹理贴图路径
 
 	Material();
 	~Material();
