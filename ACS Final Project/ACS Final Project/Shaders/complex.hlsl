@@ -70,7 +70,7 @@ float4 PSMain(PSInput input) : SV_TARGET
 
 	float4 finalColor = ambient + diff * diffuse + spec * specular;
 
-	float4 color = g_texture.Sample(g_sampler, float3(input.texCoord.xy, 5));
+	float4 color = g_texture.Sample(g_sampler, float3(input.texCoord.xy, 10));
 
 
 	return color;

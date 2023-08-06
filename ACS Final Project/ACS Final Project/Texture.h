@@ -554,18 +554,18 @@ inline void Texture::LoadTextureArray(stImageInfo texArray[], UINT texNum, D3D12
         ID3D12CommandList* ppCommandLists[] = { GlobalEngine.pICommandList.Get() };
         GlobalEngine.pICommandQueue->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
         //
-        ////等待纹理资源正式复制完成
-        //const UINT64 fence = GlobalEngine.n64FenceValue;
-        //GlobalEngine.pICommandQueue->Signal(GlobalEngine.pIFence.Get(), fence);
-        //GlobalEngine.n64FenceValue++;
-        //
-        ////---------------------------------------------------------------------------------------------
-        //// 看命令有没有真正执行到围栏标记的这里，没有就利用事件去等待，注意使用的是命令队列对象的指针
-        //if (GlobalEngine.pIFence->GetCompletedValue() < fence)
-        //{
-        //    GlobalEngine.pIFence->SetEventOnCompletion(fence, GlobalEngine.hFenceEvent);
-        //    WaitForSingleObject(GlobalEngine.hFenceEvent, INFINITE);
-        //}
+        //等待纹理资源正式复制完成
+        const UINT64 fence = GlobalEngine.n64FenceValue;
+        GlobalEngine.pICommandQueue->Signal(GlobalEngine.pIFence.Get(), fence);
+        GlobalEngine.n64FenceValue++;
+        
+        //---------------------------------------------------------------------------------------------
+        // 看命令有没有真正执行到围栏标记的这里，没有就利用事件去等待，注意使用的是命令队列对象的指针
+        if (GlobalEngine.pIFence->GetCompletedValue() < fence)
+        {
+            GlobalEngine.pIFence->SetEventOnCompletion(fence, GlobalEngine.hFenceEvent);
+            WaitForSingleObject(GlobalEngine.hFenceEvent, INFINITE);
+        }
 
         //命令分配器先Reset一下，刚才已经执行过了一个复制纹理的命令
         GlobalEngine.pICommandAllocator->Reset();

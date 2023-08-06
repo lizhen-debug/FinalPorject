@@ -72,10 +72,10 @@ private:
 	D3D_PRIMITIVE_TOPOLOGY* ModelToplogy = {};
 	void LoadModelMtl(const char* ModelMtlPath, map<string, Material> *mtl_map);
 
-	ComPtr<ID3D12DescriptorHeap>*		 pISRVCBVHeap;
-	ComPtr<ID3D12Resource>*			     pICBVUpload;
-	ComPtr<ID3D12Resource>*				 pIVertexBuffer;
-	ComPtr<ID3D12Resource>*				 pIIndexBuffer;
+	ComPtr<ID3D12DescriptorHeap>* pISRVCBVHeap = {};
+	ComPtr<ID3D12Resource>* pICBVUpload = {};
+	ComPtr<ID3D12Resource>* pIVertexBuffer = {};
+	ComPtr<ID3D12Resource>* pIIndexBuffer = {};
 
 	ConstBuffer** pConstBuffer = {};
 	SIZE_T szConstBuffer = GRS_UPPER_DIV(sizeof(ConstBuffer), 256) * 256;
@@ -121,10 +121,7 @@ inline void ComplexModel::InitComplexModel(XMFLOAT3 position, XMFLOAT3 rotation,
 	}
 
 	texture = Texture(GlobalEngine);
-	string TextureFileName1 = ("D:\\OneDrive - University of Exeter\\MSc Advanced Computer Science\\Code Dir\\ACS Final Project\\FinalPorject\\ACS Final Project\\ACS Final Project\\Models\\Scene\\textures\\Floor_normal.png");
-	string TextureFileName2 = ("D:\\OneDrive - University of Exeter\\MSc Advanced Computer Science\\Code Dir\\ACS Final Project\\FinalPorject\\ACS Final Project\\ACS Final Project\\Models\\Scene\\textures\\Metal05_baseColor.jpeg");
-	string TextureFileName3 = ("D:\\OneDrive - University of Exeter\\MSc Advanced Computer Science\\Code Dir\\ACS Final Project\\FinalPorject\\ACS Final Project\\ACS Final Project\\Models\\Scene\\textures\\Metal03_metallicRoughness.png");
-
+	
 	int tex_arr_size = all_tex_res.size();
 	stImageInfo* tex_array = new stImageInfo[tex_arr_size];
 	
@@ -134,8 +131,8 @@ inline void ComplexModel::InitComplexModel(XMFLOAT3 position, XMFLOAT3 rotation,
 		tex_array[tex_array_index].m_pszTextureFile = value;
 		tex_array_index++;
 	}
-
-	texture.LoadTextureArray(tex_array, 8, D3D12_SRV_DIMENSION_TEXTURE2DARRAY);
+	
+	texture.LoadTextureArray(tex_array, tex_arr_size, D3D12_SRV_DIMENSION_TEXTURE2DARRAY);
 
 	
 	stVertexBufferView = new D3D12_VERTEX_BUFFER_VIEW[NumMeshes];

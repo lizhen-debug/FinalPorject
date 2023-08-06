@@ -91,8 +91,8 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.450000
 d 1.000000
 illum 2
-map_Kd D:\OneDrive - University of Exeter\MSc Advanced Computer Science\Code Dir\ACS Final Project\FinalPorject\ACS Final Project\ACS Final Project\Models\Scene\textures\Note_baseColor.jpeg
-map_Ke D:\OneDrive - University of Exeter\MSc Advanced Computer Science\Code Dir\ACS Final Project\FinalPorject\ACS Final Project\ACS Final Project\Models\Scene\textures\Note_baseColor.jpeg
+map_Kd D:\OneDrive - University of Exeter\MSc Advanced Computer Science\Code Dir\ACS Final Project\FinalPorject\ACS Final Project\ACS Final Project\Models\Scene\textures\Note_baseColor.jpg
+map_Ke D:\OneDrive - University of Exeter\MSc Advanced Computer Science\Code Dir\ACS Final Project\FinalPorject\ACS Final Project\ACS Final Project\Models\Scene\textures\Note_baseColor.jpg
 
 newmtl Tiles
 Ns 508.437056
@@ -114,7 +114,7 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.450000
 d 1.000000
 illum 3
-map_Ke D:\OneDrive - University of Exeter\MSc Advanced Computer Science\Code Dir\ACS Final Project\FinalPorject\ACS Final Project\ACS Final Project\Models\Scene\textures\Welcome_Sign_baseColor.jpeg
+map_Ke D:\OneDrive - University of Exeter\MSc Advanced Computer Science\Code Dir\ACS Final Project\FinalPorject\ACS Final Project\ACS Final Project\Models\Scene\textures\Welcome_Sign_baseColor.jpg
 
 newmtl WindowFrames
 Ns 336.459115
