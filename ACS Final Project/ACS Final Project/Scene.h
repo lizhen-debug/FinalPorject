@@ -97,7 +97,7 @@ inline void Scene::ConstructScene()
 	Model axis(GlobalEngine);
 	axis.InitDefaultModel({ 0,0,0 }, { 0,0,0 }, { 1000,1000,1000 }, coordinate_axis, Instanced, D3D_PRIMITIVE_TOPOLOGY_LINELIST);
 
-	Mesh skyBoxMesh(GlobalEngine);
+	//Mesh skyBoxMesh(GlobalEngine);
 	//skyBoxMesh.LoadSkyBoxMesh();
 	stImageInfo skyBoxTexArray[6] = {};
 	TCHAR skyBoxRight[] = _T("D:\\OneDrive - University of Exeter\\MSc Advanced Computer Science\\Code Dir\\ACS Final Project\\FinalPorject\\ACS Final Project\\ACS Final Project\\Textures\\skybox\\style1\\right.jpg");
@@ -112,10 +112,10 @@ inline void Scene::ConstructScene()
 	skyBoxTexArray[4].m_pszTextureFile = skyBoxFront;
 	TCHAR skyBoxBack[] = _T("D:\\OneDrive - University of Exeter\\MSc Advanced Computer Science\\Code Dir\\ACS Final Project\\FinalPorject\\ACS Final Project\\ACS Final Project\\Textures\\skybox\\style1\\back.jpg");
 	skyBoxTexArray[5].m_pszTextureFile = skyBoxBack;
-	Texture skyBoxTex(GlobalEngine);
+	//Texture skyBoxTex(GlobalEngine);
 	//skyBoxTex.LoadTextureArray(skyBoxTexArray, 6, D3D12_SRV_DIMENSION_TEXTURECUBE);
 	
-	Model skyBoxModel(GlobalEngine);
+	//Model skyBoxModel(GlobalEngine);
 	//skyBoxModel.InitModel({ 0,0,0 }, { 0,0,0 }, { 1,1,1 }, skyBoxMesh, skyBoxTex, Skybox, D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 	
 	//AppendTargetToRenderList(skyBoxModel);
@@ -144,7 +144,7 @@ inline void Scene::RenderScene()
 	//设置渲染目标
 	GlobalEngine.pICommandList->OMSetRenderTargets(1, &rtvHandle, FALSE, &dsvHandle);
 	// 继续记录命令，并真正开始新一帧的渲染
-	const float clearColor[] = { 245.0/255.0, 1.0f, 250.0/255.0, 1.0f };
+	const float clearColor[] = { 135.0 / 255.0, 206.0 / 255.0, 250.0 / 255.0, 1.0 };
 	GlobalEngine.pICommandList->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
 	GlobalEngine.pICommandList->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
 	

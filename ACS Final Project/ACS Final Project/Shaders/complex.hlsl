@@ -12,7 +12,7 @@ struct PSInput
 	float4 normal : NORMAL;
 };
 
-cbuffer ConstVaribleBuffer : register(b0)
+cbuffer ConstBuffer : register(b0)
 {
 	float4x4 m_MVP;
 	float4x4 m_RotationMatrix;
@@ -36,7 +36,8 @@ cbuffer ConstVaribleBuffer : register(b0)
 	
 };
 
-Texture2D g_texture : register(t0);
+//Texture2D g_texture : register(t0);
+Texture2DArray g_texture : register(t0);
 SamplerState g_sampler : register(s0);
 
 
@@ -69,7 +70,7 @@ float4 PSMain(PSInput input) : SV_TARGET
 
 	float4 finalColor = ambient + diff * diffuse + spec * specular;
 
-	
-	return finalColor;
+	float4 color = g_texture.Sample(g_sampler, float3(input.texCoord.xy, 1));
+	return color;
 	
 }

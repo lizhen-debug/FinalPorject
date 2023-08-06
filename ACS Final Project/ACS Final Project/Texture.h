@@ -147,6 +147,7 @@ public:
     UINT nTextureW = 0u;//纹理宽度
     UINT nTextureH = 0u;//纹理高度
     D3D12_SRV_DIMENSION emTextureType = {};
+    UINT nTextureArrayNum = 0u;
 private:
 
     void WICLoadImageFunction(stImageInfo *image_info);
@@ -410,6 +411,7 @@ inline void Texture::LoadTexture(TCHAR TexcuteFilePath[], D3D12_SRV_DIMENSION ty
 inline void Texture::LoadTextureArray(stImageInfo texArray[], UINT texNum, D3D12_SRV_DIMENSION type)
 {
     emTextureType = type;
+    nTextureArrayNum = texNum;
 
     for (int i = 0; i < texNum; i++)
     {

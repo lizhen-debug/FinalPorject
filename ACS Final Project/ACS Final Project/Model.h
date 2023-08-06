@@ -115,7 +115,24 @@ inline void Model::InitModel(XMFLOAT3 position, XMFLOAT3 rotation, XMFLOAT3 scal
 	stSRVDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
 	stSRVDesc.Format = UsedTexture.pITexture->GetDesc().Format;
 	stSRVDesc.ViewDimension = UsedTexture.emTextureType;
-	stSRVDesc.Texture2D.MipLevels = UsedTexture.pITexture->GetDesc().MipLevels;
+	switch (UsedTexture.emTextureType)
+	{
+	case D3D12_SRV_DIMENSION_TEXTURE2D:
+		stSRVDesc.Texture2D.MipLevels = UsedTexture.pITexture->GetDesc().MipLevels;
+		break;
+	case D3D12_SRV_DIMENSION_TEXTURE2DARRAY:
+		stSRVDesc.Texture2DArray.ArraySize = UsedTexture.nTextureArrayNum;
+		stSRVDesc.Texture2DArray.MostDetailedMip = 0;
+		stSRVDesc.Texture2DArray.MipLevels = UsedTexture.pITexture->GetDesc().MipLevels;
+		stSRVDesc.Texture2DArray.FirstArraySlice = 0;
+		break;
+	case D3D12_SRV_DIMENSION_TEXTURECUBE:
+		stSRVDesc.TextureCube.MipLevels = UsedTexture.pITexture->GetDesc().MipLevels;
+		break;
+	default:
+		break;
+	}
+	
 
 	GlobalEngine.pID3DDevice->CreateShaderResourceView(
 		UsedTexture.pITexture.Get(),

@@ -24,7 +24,6 @@ struct ConstBuffer
 	XMFLOAT3 Ks;
 	int illum;
 	XMFLOAT3 Ke;
-
 	float Ni;
 	
 	
@@ -108,6 +107,24 @@ inline void ComplexModel::InitComplexModel(XMFLOAT3 position, XMFLOAT3 rotation,
 	map<string, Material> mtl_map = {};
 	const char* mtl_path = "D:\\OneDrive - University of Exeter\\MSc Advanced Computer Science\\Code Dir\\ACS Final Project\\FinalPorject\\ACS Final Project\\ACS Final Project\\Models\\Scene\\untitled.mtl";
 	LoadModelMtl(mtl_path, &mtl_map);
+
+
+	texture = Texture(GlobalEngine);
+	//TCHAR TextureFileName[] = _T("D:\\OneDrive - University of Exeter\\MSc Advanced Computer Science\\Code Dir\\ACS Final Project\\FinalPorject\\ACS Final Project\\ACS Final Project\\Models\\Scene\\textures\\Metal03_baseColor.jpeg");
+	//texture[i] = Texture(GlobalEngine);
+	//texture[i].LoadTexture(TextureFileName, D3D12_SRV_DIMENSION_TEXTURE2D);
+
+	TCHAR TextureFileName1[] = _T("D:\\OneDrive - University of Exeter\\MSc Advanced Computer Science\\Code Dir\\ACS Final Project\\FinalPorject\\ACS Final Project\\ACS Final Project\\Models\\Scene\\textures\\Metal03_baseColor.jpeg");
+	TCHAR TextureFileName2[] = _T("D:\\OneDrive - University of Exeter\\MSc Advanced Computer Science\\Code Dir\\ACS Final Project\\FinalPorject\\ACS Final Project\\ACS Final Project\\Models\\Scene\\textures\\Metal05_baseColor.jpeg");
+	TCHAR TextureFileName3[] = _T("D:\\OneDrive - University of Exeter\\MSc Advanced Computer Science\\Code Dir\\ACS Final Project\\FinalPorject\\ACS Final Project\\ACS Final Project\\Models\\Scene\\textures\\Metal03_metallicRoughness.png");
+
+	
+	stImageInfo tex_array[3] = {};
+	tex_array[0].m_pszTextureFile = TextureFileName1;
+	tex_array[1].m_pszTextureFile = TextureFileName2;
+	tex_array[2].m_pszTextureFile = TextureFileName3;
+	texture.LoadTextureArray(tex_array, 3, D3D12_SRV_DIMENSION_TEXTURE2DARRAY);
+
 	
 	stVertexBufferView = new D3D12_VERTEX_BUFFER_VIEW[NumMeshes];
 	stIndexBufferView = new D3D12_INDEX_BUFFER_VIEW[NumMeshes];
@@ -120,6 +137,7 @@ inline void ComplexModel::InitComplexModel(XMFLOAT3 position, XMFLOAT3 rotation,
 	ModelToplogy = new D3D_PRIMITIVE_TOPOLOGY[NumMeshes];
 	mesh_mtl = new Material[NumMeshes];
 	pConstBuffer = new ConstBuffer * [NumMeshes];
+	
 
 	//堆属性设置为上传堆
 	D3D12_HEAP_PROPERTIES stHeapUpload = { D3D12_HEAP_TYPE_UPLOAD };//Upload的概念就是从CPU内存上传到显存中的意思
@@ -248,9 +266,7 @@ inline void ComplexModel::InitComplexModel(XMFLOAT3 position, XMFLOAT3 rotation,
 		pICBVUpload[i]->Map(0, nullptr, reinterpret_cast<void**>(&pConstBuffer[i]));
 
 
-		TCHAR TextureFileName[] = _T("D:\\OneDrive - University of Exeter\\MSc Advanced Computer Science\\Code Dir\\ACS Final Project\\FinalPorject\\ACS Final Project\\ACS Final Project\\Models\\Scene\\textures\\Metal03_baseColor.jpeg");
-		texture = Texture(GlobalEngine);
-		texture.LoadTexture(TextureFileName, D3D12_SRV_DIMENSION_TEXTURE2D);
+		
 
 
 		//创建SRV堆 (Shader Resource View Heap) 纹理视图描述符堆,和CBV(Const Buffer View Heap)常量描述符堆
@@ -263,17 +279,26 @@ inline void ComplexModel::InitComplexModel(XMFLOAT3 position, XMFLOAT3 rotation,
 			&stSRVCBVHeapDesc,
 			IID_PPV_ARGS(&pISRVCBVHeap[i]));
 
-		//创建SRV描述符
-		D3D12_SHADER_RESOURCE_VIEW_DESC stSRVDesc = {};
-		stSRVDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-		stSRVDesc.Format = texture.pITexture->GetDesc().Format;
-		stSRVDesc.ViewDimension = texture.emTextureType;
-		stSRVDesc.Texture2D.MipLevels = texture.pITexture->GetDesc().MipLevels;
+		if (texture.pITexture)
+		{
+			//创建SRV描述符
+			D3D12_SHADER_RESOURCE_VIEW_DESC stSRVDesc = {};
+			stSRVDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+			stSRVDesc.Format = texture.pITexture->GetDesc().Format;
+			stSRVDesc.ViewDimension = texture.emTextureType;
+			//stSRVDesc.Texture2D.MipLevels = texture[i].pITexture->GetDesc().MipLevels;
+			stSRVDesc.Texture2DArray.ArraySize = texture.nTextureArrayNum;
+			stSRVDesc.Texture2DArray.MostDetailedMip = 0;
+			stSRVDesc.Texture2DArray.MipLevels = texture.pITexture->GetDesc().MipLevels;
+			stSRVDesc.Texture2DArray.FirstArraySlice = 0;
 
-		GlobalEngine.pID3DDevice->CreateShaderResourceView(
-			texture.pITexture.Get(),
-			&stSRVDesc,
-			pISRVCBVHeap[i]->GetCPUDescriptorHandleForHeapStart());
+
+			GlobalEngine.pID3DDevice->CreateShaderResourceView(
+				texture.pITexture.Get(),
+				&stSRVDesc,
+				pISRVCBVHeap[i]->GetCPUDescriptorHandleForHeapStart());
+		}
+		
 
 		//创建CBV描述符
 		D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc = {};
