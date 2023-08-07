@@ -26,7 +26,9 @@ struct ConstBuffer
 	XMFLOAT3 Ke;
 	float Ni;
 	
-	
+	XMFLOAT4 texDescriptor1;	//纹理资源描述用数组1，下标0-3对应纹理类型枚举对象中的枚举值0-3
+	XMFLOAT4 texDescriptor2;	//纹理资源描述用数组2，下标0-3对应纹理类型枚举对象中的枚举值4-7
+	XMFLOAT4 texDescriptor3;	//纹理资源描述用数组3，下标0-3对应纹理类型枚举对象中的枚举值8-11
 
 };
 
@@ -35,6 +37,7 @@ struct CModelMeshVertex
 	XMFLOAT3 Position;//顶点位置信息，float[3]
 	XMFLOAT2 TextureCoordinate;//顶点纹理坐标信息，float[2]
 	XMFLOAT3 Normal;//顶点法线信息，float[3]
+	XMFLOAT3 Tangent;//顶点切线信息，float[3]
 };
 
 class ComplexModel
@@ -84,6 +87,7 @@ private:
 	Material* mesh_mtl = {};
 
 	set<string> all_tex_res;
+	float(*texDescriptor)[12] = {};//一个用于描述多mesh模型内，每个mesh需要用到的全部纹理资源的信息。索引即为纹理类别，对应索引的值为纹理数组的索引
 };
 
 ComplexModel::ComplexModel()
@@ -146,7 +150,7 @@ inline void ComplexModel::InitComplexModel(XMFLOAT3 position, XMFLOAT3 rotation,
 	ModelToplogy = new D3D_PRIMITIVE_TOPOLOGY[NumMeshes];
 	mesh_mtl = new Material[NumMeshes];
 	pConstBuffer = new ConstBuffer * [NumMeshes];
-	
+	texDescriptor = new float[NumMeshes][12];
 
 	//堆属性设置为上传堆
 	D3D12_HEAP_PROPERTIES stHeapUpload = { D3D12_HEAP_TYPE_UPLOAD };//Upload的概念就是从CPU内存上传到显存中的意思
@@ -156,13 +160,27 @@ inline void ComplexModel::InitComplexModel(XMFLOAT3 position, XMFLOAT3 rotation,
 		aiMesh* mesh{ scene->mMeshes[i] };
 		assert(mesh != nullptr);
 
-		vector<CModelMeshVertex> mesh_vertex = {};
+		vector<CModelMeshVertex> mesh_vertex;
 		mesh_vertex.clear();
 		vector<int> mesh_index = {};
 		mesh_index.clear();
 
 		int mesh_index_num = i;
-		mesh_mtl[i] = mtl_map[scene->mMaterials[mesh->mMaterialIndex]->GetName().C_Str()];
+		string mtl_name = scene->mMaterials[mesh->mMaterialIndex]->GetName().C_Str();
+		mesh_mtl[i] = mtl_map[mtl_name];
+		mesh_mtl[i].res_type_path;
+
+		for (int ii = 0; ii < 12; ii++)
+		{
+			texDescriptor[i][ii] = -1;//每次遇到新的mesh时，重置描述数组为-1
+		}
+
+		for (map<TextureType, string>::iterator it = mesh_mtl[i].res_type_path.begin(); it != mesh_mtl[i].res_type_path.end(); it++)
+		{//遍历当前mesh所需的全部纹理信息，即为res_type_path，为 类别-地址 的对
+			set<string>::iterator find_it = all_tex_res.find(it->second);
+			texDescriptor[i][it->first] = distance(all_tex_res.begin(), find_it);//distance是根据 地址 获取该纹理在纹理数组中的索引，it->first即为枚举对象的值，刚好可以作为描述数组的下标
+		}
+
 
 		{
 			// Positions
@@ -179,6 +197,10 @@ inline void ComplexModel::InitComplexModel(XMFLOAT3 position, XMFLOAT3 rotation,
 				if (mesh->HasNormals())
 				{
 					mesh_vertex[i].Normal = XMFLOAT3(reinterpret_cast<const float*>(&mesh->mNormals[i]));
+				}
+				if (mesh->HasTangentsAndBitangents())
+				{
+					mesh_vertex[i].Tangent= XMFLOAT3(reinterpret_cast<const float*>(&mesh->mTangents[i]));
 				}
 			}
 
@@ -208,7 +230,7 @@ inline void ComplexModel::InitComplexModel(XMFLOAT3 position, XMFLOAT3 rotation,
 			}
 		}
 
-		const UINT nVertexBufferSize = sizeof(mesh_vertex) * mesh_vertex.size();
+		const UINT nVertexBufferSize = sizeof(CModelMeshVertex) * mesh_vertex.size();
 
 		const UINT nIndexBufferSize = sizeof(int) * mesh_index.size();
 
@@ -233,7 +255,7 @@ inline void ComplexModel::InitComplexModel(XMFLOAT3 position, XMFLOAT3 rotation,
 
 		//填充顶点buffer视图的结构体，告诉GPU被描述的资源实际是Vertex Buffer
 		stVertexBufferView[i].BufferLocation = pIVertexBuffer[i]->GetGPUVirtualAddress();
-		stVertexBufferView[i].StrideInBytes = sizeof(ModelMeshVertex);
+		stVertexBufferView[i].StrideInBytes = sizeof(CModelMeshVertex);
 		stVertexBufferView[i].SizeInBytes = nVertexBufferSize;
 
 
@@ -392,6 +414,12 @@ inline void ComplexModel::RenderModel(Camera camera, Light light)
 		//pConstBuffer[i]->illum = 789;
 		pConstBuffer[i]->illum = mesh_mtl[i].illum;
 
+
+		XMStoreFloat4(&pConstBuffer[i]->texDescriptor1, { texDescriptor[i][0],texDescriptor[i][1],texDescriptor[i][2],texDescriptor[i][3] });
+		XMStoreFloat4(&pConstBuffer[i]->texDescriptor2, { texDescriptor[i][4],texDescriptor[i][5],texDescriptor[i][6],texDescriptor[i][7] });
+		XMStoreFloat4(&pConstBuffer[i]->texDescriptor3, { texDescriptor[i][8],texDescriptor[i][9],texDescriptor[i][10],texDescriptor[i][11] });
+
+		
 		//设置描述符堆
 		ID3D12DescriptorHeap* ppHeaps[] = { pISRVCBVHeap[i].Get(),GlobalEngine.pISamplerDescriptorHeap.Get()};
 		GlobalEngine.pICommandList->SetDescriptorHeaps(_countof(ppHeaps), ppHeaps);

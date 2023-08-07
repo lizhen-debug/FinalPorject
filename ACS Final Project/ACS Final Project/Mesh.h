@@ -102,7 +102,7 @@ inline void Mesh::LoadMesh(const char* MeshFilePath)
         }
     }
 
-    const UINT nVertexBufferSize = sizeof(mesh_vertex) * mesh_vertex.size();
+    const UINT nVertexBufferSize = sizeof(ModelMeshVertex) * mesh_vertex.size();
 
     const UINT nIndexBufferSize = sizeof(int) * mesh_index.size();
 

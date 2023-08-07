@@ -1,8 +1,8 @@
 ﻿  Main.cpp
 D:\OneDrive - University of Exeter\MSc Advanced Computer Science\Code Dir\ACS Final Project\FinalPorject\ACS Final Project\ACS Final Project\Engine.h(76,24): warning C4244: “=”: 从“UINT”转换到“FLOAT”，可能丢失数据
 D:\OneDrive - University of Exeter\MSc Advanced Computer Science\Code Dir\ACS Final Project\FinalPorject\ACS Final Project\ACS Final Project\Engine.h(77,25): warning C4244: “=”: 从“UINT”转换到“FLOAT”，可能丢失数据
-D:\OneDrive - University of Exeter\MSc Advanced Computer Science\Code Dir\ACS Final Project\FinalPorject\ACS Final Project\ACS Final Project\Mesh.h(105,76): warning C4267: “初始化”: 从“size_t”转换到“UINT”，可能丢失数据
-D:\OneDrive - University of Exeter\MSc Advanced Computer Science\Code Dir\ACS Final Project\FinalPorject\ACS Final Project\ACS Final Project\Mesh.h(105,76): warning C4267: “初始化”: 从“size_t”转换到“const UINT”，可能丢失数据
+D:\OneDrive - University of Exeter\MSc Advanced Computer Science\Code Dir\ACS Final Project\FinalPorject\ACS Final Project\ACS Final Project\Mesh.h(105,80): warning C4267: “初始化”: 从“size_t”转换到“UINT”，可能丢失数据
+D:\OneDrive - University of Exeter\MSc Advanced Computer Science\Code Dir\ACS Final Project\FinalPorject\ACS Final Project\ACS Final Project\Mesh.h(105,80): warning C4267: “初始化”: 从“size_t”转换到“const UINT”，可能丢失数据
 D:\OneDrive - University of Exeter\MSc Advanced Computer Science\Code Dir\ACS Final Project\FinalPorject\ACS Final Project\ACS Final Project\Mesh.h(107,66): warning C4267: “初始化”: 从“size_t”转换到“UINT”，可能丢失数据
 D:\OneDrive - University of Exeter\MSc Advanced Computer Science\Code Dir\ACS Final Project\FinalPorject\ACS Final Project\ACS Final Project\Mesh.h(107,66): warning C4267: “初始化”: 从“size_t”转换到“const UINT”，可能丢失数据
 D:\OneDrive - University of Exeter\MSc Advanced Computer Science\Code Dir\ACS Final Project\FinalPorject\ACS Final Project\ACS Final Project\Mesh.h(109,36): warning C4267: “=”: 从“size_t”转换到“UINT”，可能丢失数据
@@ -11,14 +11,16 @@ D:\OneDrive - University of Exeter\MSc Advanced Computer Science\Code Dir\ACS Fi
 D:\OneDrive - University of Exeter\MSc Advanced Computer Science\Code Dir\ACS Final Project\FinalPorject\ACS Final Project\ACS Final Project\Texture.h(491,27): warning C4018: “<”: 有符号/无符号不匹配
 D:\OneDrive - University of Exeter\MSc Advanced Computer Science\Code Dir\ACS Final Project\FinalPorject\ACS Final Project\ACS Final Project\Texture.h(517,27): warning C4018: “<”: 有符号/无符号不匹配
 D:\OneDrive - University of Exeter\MSc Advanced Computer Science\Code Dir\ACS Final Project\FinalPorject\ACS Final Project\ACS Final Project\Light.h(26,30): warning C4305: “初始化”: 从“double”到“float”截断
-D:\OneDrive - University of Exeter\MSc Advanced Computer Science\Code Dir\ACS Final Project\FinalPorject\ACS Final Project\ACS Final Project\ComplexModel.h(125,39): warning C4267: “初始化”: 从“size_t”转换到“int”，可能丢失数据
-D:\OneDrive - University of Exeter\MSc Advanced Computer Science\Code Dir\ACS Final Project\FinalPorject\ACS Final Project\ACS Final Project\ComplexModel.h(154,30): warning C4018: “<”: 有符号/无符号不匹配
-D:\OneDrive - University of Exeter\MSc Advanced Computer Science\Code Dir\ACS Final Project\FinalPorject\ACS Final Project\ACS Final Project\ComplexModel.h(211,74): warning C4267: “初始化”: 从“size_t”转换到“UINT”，可能丢失数据
-D:\OneDrive - University of Exeter\MSc Advanced Computer Science\Code Dir\ACS Final Project\FinalPorject\ACS Final Project\ACS Final Project\ComplexModel.h(211,74): warning C4267: “初始化”: 从“size_t”转换到“const UINT”，可能丢失数据
-D:\OneDrive - University of Exeter\MSc Advanced Computer Science\Code Dir\ACS Final Project\FinalPorject\ACS Final Project\ACS Final Project\ComplexModel.h(213,64): warning C4267: “初始化”: 从“size_t”转换到“UINT”，可能丢失数据
-D:\OneDrive - University of Exeter\MSc Advanced Computer Science\Code Dir\ACS Final Project\FinalPorject\ACS Final Project\ACS Final Project\ComplexModel.h(213,64): warning C4267: “初始化”: 从“size_t”转换到“const UINT”，可能丢失数据
-D:\OneDrive - University of Exeter\MSc Advanced Computer Science\Code Dir\ACS Final Project\FinalPorject\ACS Final Project\ACS Final Project\ComplexModel.h(215,37): warning C4267: “=”: 从“size_t”转换到“UINT”，可能丢失数据
-D:\OneDrive - University of Exeter\MSc Advanced Computer Science\Code Dir\ACS Final Project\FinalPorject\ACS Final Project\ACS Final Project\ComplexModel.h(216,39): warning C4267: “=”: 从“size_t”转换到“UINT”，可能丢失数据
+D:\OneDrive - University of Exeter\MSc Advanced Computer Science\Code Dir\ACS Final Project\FinalPorject\ACS Final Project\ACS Final Project\Light.h(31,50): warning C4305: “参数”: 从“double”到“float”截断
+D:\OneDrive - University of Exeter\MSc Advanced Computer Science\Code Dir\ACS Final Project\FinalPorject\ACS Final Project\ACS Final Project\ComplexModel.h(129,39): warning C4267: “初始化”: 从“size_t”转换到“int”，可能丢失数据
+D:\OneDrive - University of Exeter\MSc Advanced Computer Science\Code Dir\ACS Final Project\FinalPorject\ACS Final Project\ACS Final Project\ComplexModel.h(158,30): warning C4018: “<”: 有符号/无符号不匹配
+D:\OneDrive - University of Exeter\MSc Advanced Computer Science\Code Dir\ACS Final Project\FinalPorject\ACS Final Project\ACS Final Project\ComplexModel.h(181,42): warning C4244: “=”: 从“__int64”转换到“float”，可能丢失数据
+D:\OneDrive - University of Exeter\MSc Advanced Computer Science\Code Dir\ACS Final Project\FinalPorject\ACS Final Project\ACS Final Project\ComplexModel.h(233,79): warning C4267: “初始化”: 从“size_t”转换到“UINT”，可能丢失数据
+D:\OneDrive - University of Exeter\MSc Advanced Computer Science\Code Dir\ACS Final Project\FinalPorject\ACS Final Project\ACS Final Project\ComplexModel.h(233,79): warning C4267: “初始化”: 从“size_t”转换到“const UINT”，可能丢失数据
+D:\OneDrive - University of Exeter\MSc Advanced Computer Science\Code Dir\ACS Final Project\FinalPorject\ACS Final Project\ACS Final Project\ComplexModel.h(235,64): warning C4267: “初始化”: 从“size_t”转换到“UINT”，可能丢失数据
+D:\OneDrive - University of Exeter\MSc Advanced Computer Science\Code Dir\ACS Final Project\FinalPorject\ACS Final Project\ACS Final Project\ComplexModel.h(235,64): warning C4267: “初始化”: 从“size_t”转换到“const UINT”，可能丢失数据
+D:\OneDrive - University of Exeter\MSc Advanced Computer Science\Code Dir\ACS Final Project\FinalPorject\ACS Final Project\ACS Final Project\ComplexModel.h(237,37): warning C4267: “=”: 从“size_t”转换到“UINT”，可能丢失数据
+D:\OneDrive - University of Exeter\MSc Advanced Computer Science\Code Dir\ACS Final Project\FinalPorject\ACS Final Project\ACS Final Project\ComplexModel.h(238,39): warning C4267: “=”: 从“size_t”转换到“UINT”，可能丢失数据
 D:\OneDrive - University of Exeter\MSc Advanced Computer Science\Code Dir\ACS Final Project\FinalPorject\ACS Final Project\ACS Final Project\Scene.h(147,80): warning C4305: “初始化”: 从“double”到“const float”截断
 D:\OneDrive - University of Exeter\MSc Advanced Computer Science\Code Dir\ACS Final Project\FinalPorject\ACS Final Project\ACS Final Project\Main.cpp(60,47): warning C4244: “参数”: 从“double”转换到“float”，可能丢失数据
 D:\OneDrive - University of Exeter\MSc Advanced Computer Science\Code Dir\ACS Final Project\FinalPorject\ACS Final Project\ACS Final Project\Main.cpp(61,49): warning C4244: “参数”: 从“double”转换到“float”，可能丢失数据

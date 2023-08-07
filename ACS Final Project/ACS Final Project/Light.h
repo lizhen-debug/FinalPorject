@@ -28,6 +28,9 @@ inline void Light::InitLight()
 
 inline void Light::UpdateLight()
 {
+	XMMATRIX rotationMatrix = XMMatrixRotationY(0.01);
+
+	lightDirection = XMVector3TransformNormal(lightDirection, rotationMatrix);
 }
 
 Light::~Light()

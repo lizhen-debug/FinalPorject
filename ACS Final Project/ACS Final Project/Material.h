@@ -6,13 +6,16 @@ enum TextureType
     map_Bump,   //法线贴图
     map_Ke,     //自发光纹理贴图
     map_Ka,     //环境光纹理贴图
+
     map_Ks,     //镜面反射纹理贴图
     map_Ns,     //高光度纹理贴图
     map_d,      //透明度纹理贴图
     map_Tr,     //透明度纹理贴图（替代形式）
+
     map_disp,   //位移纹理贴图
     map_refl,   //反射纹理贴图
     map_Rough,  //粗糙度纹理贴图
+    map_Backup  //备用纹理贴图
 };
 
 class Material
