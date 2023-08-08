@@ -4,12 +4,15 @@
 newmtl Floor
 Ns 900.000000
 Ka 1.000000 1.000000 1.000000
-Kd 0.105885 0.108964 0.154263
+Kd 0.805885 0.808964 0.854263
 Ks 0.500000 0.500000 0.500000
 Ke 0.000000 0.000000 0.000000
 Ni 1.450000
 d 1.000000
 illum 2
+map_disp D:\OneDrive - University of Exeter\MSc Advanced Computer Science\Code Dir\ACS Final Project\FinalPorject\ACS Final Project\ACS Final Project\Models\Scene\textures\beaten-down-brick_height.png
+map_Rough D:\OneDrive - University of Exeter\MSc Advanced Computer Science\Code Dir\ACS Final Project\FinalPorject\ACS Final Project\ACS Final Project\Models\Scene\textures\beaten-down-brick_roughness.png
+map_Kd D:\OneDrive - University of Exeter\MSc Advanced Computer Science\Code Dir\ACS Final Project\FinalPorject\ACS Final Project\ACS Final Project\Models\Scene\textures\beaten-down-brick_albedo.png
 map_Bump D:\OneDrive - University of Exeter\MSc Advanced Computer Science\Code Dir\ACS Final Project\FinalPorject\ACS Final Project\ACS Final Project\Models\Scene\textures\Floor_normal.png
 
 newmtl Light

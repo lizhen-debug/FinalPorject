@@ -30,6 +30,8 @@ struct ConstBuffer
 	XMFLOAT4 texDescriptor2;	//纹理资源描述用数组2，下标0-3对应纹理类型枚举对象中的枚举值4-7
 	XMFLOAT4 texDescriptor3;	//纹理资源描述用数组3，下标0-3对应纹理类型枚举对象中的枚举值8-11
 
+	stAdvancedLight lights[MAX_LIGHTS];
+
 };
 
 struct CModelMeshVertex
@@ -419,6 +421,11 @@ inline void ComplexModel::RenderModel(Camera camera, Light light)
 		XMStoreFloat4(&pConstBuffer[i]->texDescriptor2, { texDescriptor[i][4],texDescriptor[i][5],texDescriptor[i][6],texDescriptor[i][7] });
 		XMStoreFloat4(&pConstBuffer[i]->texDescriptor3, { texDescriptor[i][8],texDescriptor[i][9],texDescriptor[i][10],texDescriptor[i][11] });
 
+		for (int light_i = 0; light_i < light.lights_num; light_i++)
+		{
+			pConstBuffer[i]->lights[light_i] = light.lights[light_i];
+		}
+		
 		
 		//设置描述符堆
 		ID3D12DescriptorHeap* ppHeaps[] = { pISRVCBVHeap[i].Get(),GlobalEngine.pISamplerDescriptorHeap.Get()};
@@ -538,7 +545,13 @@ inline void ComplexModel::LoadModelMtl(const char* ModelMtlPath, map<string, Mat
 			(*mtl_map)[currentMaterial.name].res_type_path.insert(make_pair(map_Rough, texturePath));
 
 		}
-			
+		else if (keyword == "map_disp") {
+			string texturePath;
+			iss >> ws;
+			getline(iss, texturePath);
+			(*mtl_map)[currentMaterial.name].res_type_path.insert(make_pair(map_disp, texturePath));
+
+		}
 	}
 	file.close();
 }

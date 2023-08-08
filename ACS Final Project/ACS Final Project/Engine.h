@@ -314,10 +314,16 @@ Engine::Engine(HWND hwnd)
 
     TCHAR pszShaderFileName4[] = _T("D:\\OneDrive - University of Exeter\\MSc Advanced Computer Science\\Code Dir\\ACS Final Project\\FinalPorject\\ACS Final Project\\ACS Final Project\\Shaders\\complex.hlsl");
 
-    D3DCompileFromFile(pszShaderFileName4, nullptr, nullptr, "VSMain", "vs_5_0", compileFlags, 0, &vertexShader4, nullptr);
 
+    ID3DBlob* errorBlob = nullptr;
+    D3DCompileFromFile(pszShaderFileName4, nullptr, nullptr, "VSMain", "vs_5_0", compileFlags, 0, &vertexShader4, &errorBlob);
+    
     D3DCompileFromFile(pszShaderFileName4, nullptr, nullptr, "PSMain", "ps_5_0", compileFlags, 0, &pixelShader4, nullptr);
-
+    //if (errorBlob)
+    //{
+    //    OutputDebugStringA(reinterpret_cast<const char*>(errorBlob->GetBufferPointer()));
+    //    errorBlob->Release(); // 释放错误Blob
+    //}
 
     //填充用于描述顶点输入布局的结构体
     D3D12_INPUT_ELEMENT_DESC inputElementDescs1[] =
@@ -441,12 +447,12 @@ Engine::Engine(HWND hwnd)
     CD3DX12_CPU_DESCRIPTOR_HANDLE hSamplerHeap(pISamplerDescriptorHeap->GetCPUDescriptorHandleForHeapStart());
 
     D3D12_SAMPLER_DESC stSamplerDesc = {};
-    stSamplerDesc.Filter = D3D12_FILTER_MIN_MAG_MIP_LINEAR;
+    stSamplerDesc.Filter = D3D12_FILTER_ANISOTROPIC;
     stSamplerDesc.MinLOD = 0;
     stSamplerDesc.MaxLOD = D3D12_FLOAT32_MAX;
     stSamplerDesc.MipLODBias = 0.0f;
     stSamplerDesc.MaxAnisotropy = D3D12_MAX_MAXANISOTROPY;
-    stSamplerDesc.ComparisonFunc = D3D12_COMPARISON_FUNC_NEVER;
+    stSamplerDesc.ComparisonFunc = D3D12_COMPARISON_FUNC_LESS_EQUAL;
 
     // Sampler 1
     stSamplerDesc.BorderColor[0] = 0.0f;
