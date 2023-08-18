@@ -409,6 +409,7 @@ inline void ComplexModel::RenderModel(Camera camera, Light light)
 		//XMVECTOR temp_ke = { 0.5f,0.5f,0.5f };
 		//XMStoreFloat3(&pConstBuffer[i]->Ke, temp_ke);
 		XMStoreFloat3(&pConstBuffer[i]->Ke, { mesh_mtl[i].Ke[0],mesh_mtl[i].Ke[1] ,mesh_mtl[i].Ke[2] });
+
 		//pConstBuffer[i]->Ni = 666;
 		pConstBuffer[i]->Ni = mesh_mtl[i].Ni;
 		//pConstBuffer[i]->d = 123;
@@ -550,6 +551,13 @@ inline void ComplexModel::LoadModelMtl(const char* ModelMtlPath, map<string, Mat
 			iss >> ws;
 			getline(iss, texturePath);
 			(*mtl_map)[currentMaterial.name].res_type_path.insert(make_pair(map_disp, texturePath));
+
+		}
+		else if (keyword == "map_Ks") {
+			string texturePath;
+			iss >> ws;
+			getline(iss, texturePath);
+			(*mtl_map)[currentMaterial.name].res_type_path.insert(make_pair(map_Ks, texturePath));
 
 		}
 	}

@@ -1,3 +1,67 @@
+mtllib material.mtl
+
+v 0.0  0.0  0.0
+v 1.0  0.0  0.0
+v 0.0  1.0  0.0
+v 1.0  1.0  0.0
+
+vt 0.0  0.0
+vt 1.0  0.0
+vt 0.0  1.0
+vt 1.0  1.0
+
+vn 0.0  0.0  1.0
+vn 0.0  0.0  1.0
+vn 0.0  0.0  1.0
+vn 0.0  0.0  1.0
+
+usemtl MaterialName
+f 1/1/1  2/2/1  3/3/1
+f 2/2/1  3/3/1  4/4/1
+
+
+
+
+
+
+
+
+newmtl MaterialName
+Ka 0.2 0.2 0.2     
+Kd 0.8 0.8 0.8     
+Ks 0.5 0.5 0.5     
+Ns 50.0         
+Ni 1.5
+d 1.0 
+Tr 0.0
+
+map_Ka ambient_texture.jpg
+map_Kd diffuse_texture.jpg
+map_Ks specular_texture.jpg
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 #define MAX_LIGHTS 16
 #define NUM_DIR_LIGHTS 3
 #define NUM_POINT_LIGHTS 0

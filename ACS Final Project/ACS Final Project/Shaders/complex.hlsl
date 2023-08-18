@@ -1,7 +1,7 @@
 #define MAX_LIGHTS 16
-#define NUM_DIR_LIGHTS 3
-#define NUM_POINT_LIGHTS 0
-#define NUM_SPOT_LIGHTS 0
+#define NUM_DIR_LIGHTS 0
+#define NUM_POINT_LIGHTS 2
+#define NUM_SPOT_LIGHTS 1
 
 struct Light
 {
@@ -15,9 +15,9 @@ struct Light
 
 struct Material
 {
-	float4 diffuseAlbedo; //材质反照率
-	float3 fresnelR0; //RF(0)值，即材质的反射属性
-	float roughness; //材质的粗糙度
+	float4 diffuseAlbedo; //材质反照率 kd
+	float3 fresnelR0; //RF(0)值，即材质的反射属性 ks 
+	float roughness; //材质的粗糙度 ns
 };
 
 //光照衰减：d是光源离物体顶点的距离，falloffEnd是最大衰减距离，falloffStart是开始衰减距离
@@ -51,6 +51,116 @@ float3 BlinnPhong(Material mat, float3 normal, float3 toEye, float3 lightVec, fl
 	//return lightStrength;
 }
 
+//******************************************************************
+
+static const float PI = 3.14159265359;
+
+struct ST_CB_PBR_MATERIAL
+{
+	float3   g_v3Albedo;        // 反射率
+	float    g_fMetallic;           // 金属度
+	float    g_fRoughness;      // 粗糙度
+	float    g_fAO;                  // 环境光遮蔽
+};
+
+float3 Fresnel_Schlick(float cosTheta, float3 F0)
+{
+	return F0 + (1.0 - F0) * pow(1.0 - cosTheta, 5.0);
+}
+
+float Distribution_GGX(float3 N, float3 H, float fRoughness)
+{
+	float a = fRoughness * fRoughness;
+	float a2 = a * a;
+	float NdotH = max(dot(N, H), 0.0);
+	float NdotH2 = NdotH * NdotH;
+
+	float num = a2;
+	float denom = (NdotH2 * (a2 - 1.0) + 1.0);
+	denom = PI * denom * denom;
+
+	return num / denom;
+}
+
+float Geometry_Schlick_GGX(float NdotV, float fRoughness)
+{
+	// 直接光照时 k = (fRoughness + 1)^2 / 8;
+	// IBL 时 k = （fRoughness^2)/2;
+	float r = (fRoughness + 1.0);
+	float k = (r * r) / 8.0;
+	//float k = pow((fRoughness + 1), 2) / 8;
+	//float k = pow(fRoughness, 2) / 2;
+
+	float num = NdotV;
+	float denom = NdotV * (1.0 - k) + k;
+
+	return num / denom;
+}
+
+float Geometry_Smith(float3 N, float3 V, float3 L, float fRoughness)
+{
+	float NdotV = max(dot(N, V), 0.0);
+	float NdotL = max(dot(N, L), 0.0);
+	float ggx2 = Geometry_Schlick_GGX(NdotV, fRoughness);
+	float ggx1 = Geometry_Schlick_GGX(NdotL, fRoughness);
+
+	return ggx1 * ggx2;
+}
+
+float3 PBR(Material mat, float3 normal, float3 toEye, float3 lightVec, float3 lightStrength)
+{
+	// 使用插值生成的光滑法线
+	float3 N = normalize(normal);
+	// 视向量
+	float3 V = normalize(toEye);
+
+	float3 F0 = float3(0.04f, 0.04f, 0.04f);
+
+	// Gamma矫正颜色
+	float3 v3Albedo = pow(mat.diffuseAlbedo.rgb, 2.2f);
+	//float3 v3Albedo = mat.diffuseAlbedo.rgb;
+
+	F0 = lerp(F0, v3Albedo, mat.fresnelR0);
+
+	// 出射辐射度
+	float3 Lo = float3(0.0f, 0.0f, 0.0f);
+
+	// 粗糙度
+	float fRoughness = mat.roughness;
+
+
+	// 点光源的情况
+	// 入射光向量
+	float3 L = normalize(lightVec);
+	// 中间向量（入射光与法线的角平分线）
+	float3 H = normalize(V + L);
+
+	float3 radiance = lightStrength;
+
+	// Cook-Torrance光照模型 BRDF
+	float NDF = Distribution_GGX(N, H, fRoughness);
+	float G = Geometry_Smith(N, V, L, fRoughness);
+	float3 F = Fresnel_Schlick(max(dot(H, V), 0.0), F0);
+
+	float3 kS = F;
+	float3 kD = float3(1.0f, 1.0f, 1.0f) - kS;
+	kD *= 1.0 - mat.fresnelR0;
+
+	float3 numerator = NDF * G * F;
+	float denominator = 4.0 * max(dot(N, V), 0.0) * max(dot(N, L), 0.0);
+	float3 specular = numerator / max(denominator, 0.001);
+
+	// add to outgoing radiance Lo
+	float NdotL = max(dot(N, L), 0.0);
+	Lo += (kD * v3Albedo / PI + specular) * radiance * NdotL;
+	
+	float3 diff_Spec = radiance * (v3Albedo + specular);
+	
+	return diff_Spec;
+}
+
+//******************************************************************
+
 //平行光源
 float3 ComputerDirectionalLight(Light light, Material mat, float3 normal, float3 toEye)
 {
@@ -79,7 +189,8 @@ float3 ComputerPointLight(Light light, Material mat, float3 pos, float3 normal, 
 	lightStrength *= att;//衰减后的单位面积辐照度
 
 	//计算点光的漫反射和高光反射
-	return BlinnPhong(mat, normal, toEye, lightVec, lightStrength);
+	//return BlinnPhong(mat, normal, toEye, lightVec, lightStrength);
+	return PBR(mat, normal, toEye, lightVec, lightStrength);
 }
 
 //聚光灯光源
@@ -104,7 +215,7 @@ float3 ComputerSpotLight(Light light, Material mat, float3 pos, float3 normal, f
 	lightStrength *= spotFactor;
 
 	//计算聚光灯的漫反射和高光反射
-	return BlinnPhong(mat, normal, toEye, lightVec, lightStrength);
+	return PBR(mat, normal, toEye, lightVec, lightStrength);
 }
 
 float4 ComputerLighting(Light lights[MAX_LIGHTS], Material mat, float3 pos, float3 normal, float3 toEye, float3 shadowFactor)
@@ -210,7 +321,7 @@ float4 PSMain(PSInput input) : SV_TARGET
 	}
 
 
-	float4 ambient = float4(Ka, 1.0f) * 0.5;
+	float4 ambient = float4(Ka, 1.0f) * 0.3;
 
 	float4 diffuse;
 	if (texDescriptor1[0] != -1)// if diffuse texture exist 
@@ -277,7 +388,19 @@ float4 PSMain(PSInput input) : SV_TARGET
 	float3 worldNormal = normal.xyz;
 	float3 worldView = viewDir.xyz;
 
-	Material mat = { diffuseAlbedo, Ks, roughness };
+
+	float3 mat_ks;
+	if (texDescriptor1[0] != -1)// if diffuse texture exist 
+	{
+		mat_ks = g_texture.Sample(g_sampler, float3(input.texCoord.xy, texDescriptor1[0])).xyz;
+	}
+	else
+	{
+		mat_ks = Ks.xyz;
+	}
+
+
+	Material mat = { diffuseAlbedo, mat_ks, roughness };
 	float3 shadowFactor = float3(1, 1, 1); //暂时使用1.0，不对计算产生影响
 	//直接光照
 	float4 directLight = ComputerLighting(lights, mat, input.worldPosition.xyz, worldNormal, worldView, shadowFactor);
@@ -287,7 +410,30 @@ float4 PSMain(PSInput input) : SV_TARGET
 	float4 finalCol = ambientL + directLight;
 	finalCol.a = diffuseAlbedo.a;
 
+
+	float fAO = 1.0;
+	// 环境光项
+	float3 ambientNew = float3(0.03f, 0.03f, 0.03f) * diffuseAlbedo * fAO;
+	float3 colorNew = ambientNew + directLight;
+
+	colorNew = colorNew / (colorNew + float3(1.0f, 1.0f, 1.0f));
+	// Gamma 矫正
+	colorNew = pow(colorNew, 1.0f / 2.2f);
+	
 	return finalCol;
+	
+
+
+	//if (texDescriptor2[0] != -1)// if diffuse texture exist 
+	//{
+	//	finalCol = g_texture.Sample(g_sampler, float3(input.texCoord.xy, texDescriptor2[0]));
+	//}
+	//else
+	//{
+	//	finalCol = float4(1, 0, 0, 1);
+	//}
+
+	//return finalCol;
 	//if (lights[2].spotPower == 666)
 	//	return finalColor;
 	//else

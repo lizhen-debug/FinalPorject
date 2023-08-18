@@ -13,7 +13,7 @@ illum 2
 map_disp D:\OneDrive - University of Exeter\MSc Advanced Computer Science\Code Dir\ACS Final Project\FinalPorject\ACS Final Project\ACS Final Project\Models\Scene\textures\beaten-down-brick_height.png
 map_Rough D:\OneDrive - University of Exeter\MSc Advanced Computer Science\Code Dir\ACS Final Project\FinalPorject\ACS Final Project\ACS Final Project\Models\Scene\textures\beaten-down-brick_roughness.png
 map_Kd D:\OneDrive - University of Exeter\MSc Advanced Computer Science\Code Dir\ACS Final Project\FinalPorject\ACS Final Project\ACS Final Project\Models\Scene\textures\beaten-down-brick_albedo.png
-map_Bump D:\OneDrive - University of Exeter\MSc Advanced Computer Science\Code Dir\ACS Final Project\FinalPorject\ACS Final Project\ACS Final Project\Models\Scene\textures\Floor_normal.png
+map_Bump D:\OneDrive - University of Exeter\MSc Advanced Computer Science\Code Dir\ACS Final Project\FinalPorject\ACS Final Project\ACS Final Project\Models\Scene\textures\beaten-down-brick_normal-ogl.png
 
 newmtl Light
 Ns 143.999983
@@ -58,8 +58,11 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.450000
 d 1.000000
 illum 2
-map_Kd D:\OneDrive - University of Exeter\MSc Advanced Computer Science\Code Dir\ACS Final Project\FinalPorject\ACS Final Project\ACS Final Project\Models\Scene\textures\Metal03_baseColor.jpeg
-map_Rough D:\OneDrive - University of Exeter\MSc Advanced Computer Science\Code Dir\ACS Final Project\FinalPorject\ACS Final Project\ACS Final Project\Models\Scene\textures\Metal03_metallicRoughness.png
+map_Kd D:\OneDrive - University of Exeter\MSc Advanced Computer Science\Code Dir\ACS Final Project\FinalPorject\ACS Final Project\ACS Final Project\Models\Scene\textures\beaten-up-metal1-albedo.png
+map_disp D:\OneDrive - University of Exeter\MSc Advanced Computer Science\Code Dir\ACS Final Project\FinalPorject\ACS Final Project\ACS Final Project\Models\Scene\textures\beaten-up-metal1-Height.png
+map_Rough D:\OneDrive - University of Exeter\MSc Advanced Computer Science\Code Dir\ACS Final Project\FinalPorject\ACS Final Project\ACS Final Project\Models\Scene\textures\beaten-up-metal1-Roughness.png
+map_Bump D:\OneDrive - University of Exeter\MSc Advanced Computer Science\Code Dir\ACS Final Project\FinalPorject\ACS Final Project\ACS Final Project\Models\Scene\textures\beaten-up-metal1-Normal-ogl.png
+map_Ks D:\OneDrive - University of Exeter\MSc Advanced Computer Science\Code Dir\ACS Final Project\FinalPorject\ACS Final Project\ACS Final Project\Models\Scene\textures\beaten-up-metal1-Metallic.png
 
 newmtl Metal04
 Ns 225.000000
@@ -100,13 +103,16 @@ map_Ke D:\OneDrive - University of Exeter\MSc Advanced Computer Science\Code Dir
 newmtl Tiles
 Ns 508.437056
 Ka 1.000000 1.000000 1.000000
-Kd 0.014035 0.014948 0.020743
-Ks 0.500000 0.500000 0.500000
+Kd 0.814035 0.814948 0.820743
+Ks 0.800000 0.800000 0.800000
 Ke 0.000000 0.000000 0.000000
 Ni 1.450000
 d 1.000000
 illum 2
-map_Bump D:\OneDrive - University of Exeter\MSc Advanced Computer Science\Code Dir\ACS Final Project\FinalPorject\ACS Final Project\ACS Final Project\Models\Scene\textures\Tiles_normal.png
+map_Kd D:\OneDrive - University of Exeter\MSc Advanced Computer Science\Code Dir\ACS Final Project\FinalPorject\ACS Final Project\ACS Final Project\Models\Scene\textures\modern-metal-wall_albedo.png
+map_disp D:\OneDrive - University of Exeter\MSc Advanced Computer Science\Code Dir\ACS Final Project\FinalPorject\ACS Final Project\ACS Final Project\Models\Scene\textures\modern-metal-wall_height.png
+map_Rough D:\OneDrive - University of Exeter\MSc Advanced Computer Science\Code Dir\ACS Final Project\FinalPorject\ACS Final Project\ACS Final Project\Models\Scene\textures\modern-metal-wall_roughness.png
+map_Bump D:\OneDrive - University of Exeter\MSc Advanced Computer Science\Code Dir\ACS Final Project\FinalPorject\ACS Final Project\ACS Final Project\Models\Scene\textures\modern-metal-wall_normal-ogl.png
 
 newmtl Welcome_Sign
 Ns 696.356123

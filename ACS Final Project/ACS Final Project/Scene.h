@@ -70,12 +70,13 @@ inline void Scene::ConstructScene()
 
 
 	const char* MeshFileName1 = "D:\\OneDrive - University of Exeter\\MSc Advanced Computer Science\\Code Dir\\ACS Final Project\\FinalPorject\\ACS Final Project\\ACS Final Project\\Models\\kuroro.obj";
+	string TextureFileName1 = "D:\\OneDrive - University of Exeter\\MSc Advanced Computer Science\\Code Dir\\ACS Final Project\\FinalPorject\\ACS Final Project\\ACS Final Project\\Models\\Kuroro_UV\\diffuse.png";
+
+	
 	Mesh mesh1(GlobalEngine);
 	mesh1.LoadMesh(MeshFileName1);
-	string TextureFileName1 = "D:\\OneDrive - University of Exeter\\MSc Advanced Computer Science\\Code Dir\\ACS Final Project\\FinalPorject\\ACS Final Project\\ACS Final Project\\Models\\Kuroro_UV\\diffuse.png";
 	Texture tex1(GlobalEngine);
 	tex1.LoadTexture(TextureFileName1, D3D12_SRV_DIMENSION_TEXTURE2D);
-	
 	Model model1(GlobalEngine);
 	model1.InitModel({ 0,30 ,0 }, { 0,0,0 }, { 1,1,1 }, mesh1, tex1, IndexedInstanced, D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
@@ -91,11 +92,11 @@ inline void Scene::ConstructScene()
 	//model2.InitModel({ 0,0 ,0 }, { 0,0,0 }, { 60,60,60 }, mesh2, tex2, IndexedInstanced, D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	
 	
-	Mesh coordinate_axis(GlobalEngine);
-	coordinate_axis.LoadDefaultMesh();
+	//Mesh coordinate_axis(GlobalEngine);
+	//coordinate_axis.LoadDefaultMesh();
 	
-	Model axis(GlobalEngine);
-	axis.InitDefaultModel({ 0,0,0 }, { 0,0,0 }, { 1000,1000,1000 }, coordinate_axis, Instanced, D3D_PRIMITIVE_TOPOLOGY_LINELIST);
+	//Model axis(GlobalEngine);
+	//axis.InitDefaultModel({ 0,0,0 }, { 0,0,0 }, { 1000,1000,1000 }, coordinate_axis, Instanced, D3D_PRIMITIVE_TOPOLOGY_LINELIST);
 
 	//Mesh skyBoxMesh(GlobalEngine);
 	//skyBoxMesh.LoadSkyBoxMesh();
@@ -121,7 +122,7 @@ inline void Scene::ConstructScene()
 	//AppendTargetToRenderList(skyBoxModel);
 	AppendTargetToRenderList(model1);
 	//AppendTargetToRenderList(model2);
-	AppendTargetToRenderList(axis);
+	//AppendTargetToRenderList(axis);
 }
 
 inline void Scene::RenderScene()
